@@ -19,11 +19,11 @@ class StackedHistogram {
     this.data = _data;
     this.data.forEach(review => {
       if (review['genres'].length === 0) {
-        review['genres'].push('None');
+        review['genres'].push('No genre specified');
       }
     });
     this.genreProperties = {};
-    const genreKeys = ['None'];
+    const genreKeys = [];
     _genres.forEach(genre => {
       this.genreProperties[genre] = {
         value: 0,

@@ -20,7 +20,8 @@ async function main() {
 main();
 
 function _getAllGenres() {
-  let genres = new Set()
+  let genres = new Set();
+  genres.add("No genre specified");
   data.forEach(d => {
     d['genres'].forEach(g => {
       genres.add(g);
