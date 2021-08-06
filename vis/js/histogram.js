@@ -12,8 +12,9 @@ class StackedHistogram {
       parentElement: _config.parentElement,
       containerWidth: _config.containerWidth || 1100,
       containerHeight: _config.containerHeight || 680,
-      margin: _config.margin || {top: 10, right: 10, bottom: 35, left: 90},
+      margin: _config.margin || {top: 10, right: 10, bottom: 35, left: 60},
       legendTransform: _config.legendTransform || {down: 15, right: 20},
+      tooltipPadding: _config.tooltipPadding || 10,
     }
     this.data = _data;
     this.data.forEach(review => {
@@ -152,9 +153,19 @@ class StackedHistogram {
           .attr("class", "bar")
           .attr("height", d => vis.yScale(d[0]) - vis.yScale(d[1]))
           .attr("width", vis.xScale.bandwidth())
-        .append("title")
-          .text(d => `${d.data.score} ${d.key} 
-  ${(d.data[d.key])}`);
+        .on("mousemove", (event, d) => {
+          d3.select('#tooltip')
+              .style('display', 'block')
+              .style('left', (event.pageX + vis.config.tooltipPadding) + 'px')
+              .style('top', (event.pageY + vis.config.tooltipPadding) + 'px')
+              .html(`
+              <div class="tooltip-title">${d.key}, <b>${d.data.score.toFixed(1)}</b></div>
+              <div class="tooltip-body"><b>${d.data[d.key].toFixed(2)}</b> reviews</div>
+              `);
+        })
+        .on('mouseleave', () => {
+          d3.select('#tooltip').style('display', 'none');
+        });
 
     // Append empty x-axis group and move it to the bottom of the chart
     vis.xAxisG = vis.chart.append('g')
