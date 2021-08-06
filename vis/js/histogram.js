@@ -16,6 +16,11 @@ class StackedHistogram {
       legendTransform: _config.legendTransform || {down: 15, right: 20},
     }
     this.data = _data;
+    this.data.forEach(review => {
+      if (review['genres'].length === 0) {
+        review['genres'].push('None');
+      }
+    });
     this.genreProperties = {};
     const genreKeys = ['None'];
     _genres.forEach(genre => {
@@ -28,6 +33,7 @@ class StackedHistogram {
     });
     genreKeys.sort();
     this.genreKeys = genreKeys;
+    this.selectedGenres = new Set();
     this.initVis();
   }
 
@@ -86,19 +92,29 @@ class StackedHistogram {
       scores.push(obj);
     }
 
-    vis.data.forEach(review => {
-      const scoreIndex = review['score'] * 10;
-      const genres = review['genres']
-      if (genres.length === 0) {
-        scores[scoreIndex].None += 1;
-      } else if (genres.length === 1) {
-        const genre = genres[0];
-        scores[scoreIndex][genre] += 1;
+    const filteredData = vis.data.filter(d => {
+      if (vis.selectedGenres.size === 0) {
+        return true;
       } else {
-        genres.forEach(genre => {
-          scores[scoreIndex][genre] += 1.0 / genres.length;
-        });
+        const genres = d['genres'];
+        for (const genre of genres) {
+          if (vis.selectedGenres.has(genre)) {
+            return true;
+          }
+        }
+        return false;
       }
+    });
+
+    filteredData.forEach(review => {
+      const scoreIndex = review['score'] * 10;
+      const genres = review['genres'];
+      const noGenresSelected = vis.selectedGenres.size === 0;
+      genres.forEach(genre => {
+        if (noGenresSelected || vis.selectedGenres.has(genre)) {
+          scores[scoreIndex][genre] += 1.0 / genres.length;
+        }
+      });
     });
 
     vis.series = d3.stack()
@@ -133,6 +149,7 @@ class StackedHistogram {
         .join("rect")
           .attr("x", d => vis.xScale(d.data.score))
           .attr("y", d => vis.yScale(d[1]))
+          .attr("class", "bar")
           .attr("height", d => vis.yScale(d[0]) - vis.yScale(d[1]))
           .attr("width", vis.xScale.bandwidth())
         .append("title")
@@ -153,5 +170,20 @@ class StackedHistogram {
     vis.legendG = vis.chart.append('g')
         .attr("transform", `translate(${vis.config.legendTransform.right},${vis.config.legendTransform.down})`)
         .call(vis.legend);
+
+    vis.chart.selectAll('.cell')
+        .on("click", (event, d) => {
+          vis.activateGenre(d);
+        });
+  }
+
+  activateGenre(genre) {
+    let vis = this;
+    if (vis.selectedGenres.has(genre)) {
+      vis.selectedGenres.delete(genre);
+    } else {
+      vis.selectedGenres.add(genre);
+    }
+    vis.updateVis();
   }
 }

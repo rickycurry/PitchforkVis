@@ -31,3 +31,11 @@ h3 {
 .cell {
     cursor: pointer;
 }
+
+.swatch {
+    stroke: #555;
+}
+
+.bar:hover {
+    stroke: black;
+}
