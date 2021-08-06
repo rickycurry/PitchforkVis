@@ -1,0 +1,33 @@
+text {
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    color: #3F3844
+}
+
+h1 {
+    font-family: 'Garamond', serif;
+    font-weight: 700;
+    font-size: 36px;
+    text-align: center;
+    margin: 1rem 0 1rem;
+}
+
+h3 {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 400;
+    font-size: 20px;
+    text-align: center;
+    margin: 1rem 0 0;
+}
+
+.axis-title {
+    font-size: 15px;
+}
+
+.axis line {
+    stroke: #bbb;
+}
+
+.cell {
+    cursor: pointer;
+}
