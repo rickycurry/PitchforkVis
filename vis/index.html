@@ -11,7 +11,15 @@
     <h3>Visualizing 26 years of music criticism</h3>
     <!-- Add HTML content, SVG drawing area, ... -->
     <div class="container">
-        <div class="chart"><svg id="histogram"></svg></div>
+        <div class="container-left">
+            <div class="chart"><svg id="histogram"></svg></div>
+        </div>
+        <div class="container-right">
+            <h3 id="album-list-title">Click a segment to view its reviews</h3>
+            <div class="album-list">
+                <ul id="filtered-albums"></ul>
+            </div>
+        </div>
     </div>
     <div id="tooltip"></div>
 

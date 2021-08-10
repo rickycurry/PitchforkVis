@@ -1,17 +1,17 @@
 text {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Verdana', sans-serif;
     font-size: 13px;
     color: #3F3844
 }
 
 .tooltip-title {
-    font-family: 'Garamond', serif;
+    font-family: 'Verdana', sans-serif;
     font-size: 16px;
     color: #3F3844
 }
 
 .tooltip-body {
-    font-family: 'Garamond', serif;
+    font-family: 'Verdana', sans-serif;
     font-size: 13px;
     color: #3F3844
 }
@@ -25,7 +25,7 @@ h1 {
 }
 
 h3 {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Verdana', sans-serif;
     font-weight: 400;
     font-size: 20px;
     text-align: center;
@@ -52,6 +52,10 @@ h3 {
     stroke: black;
 }
 
+.bar.active {
+    stroke: black;
+}
+
 #tooltip {
     position: absolute;
     display: none;
@@ -64,4 +68,32 @@ h3 {
     padding: 10px;
     color: #000;
     max-width: 170px;
+}
+
+.container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.container-left {
+    margin-right: 1rem;
+}
+
+.container-right {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 300px;
+    font-family: 'Verdana', sans-serif;
+}
+
+.album-list {
+    margin-top: 1rem;
+    height: 620px;
+    overflow: auto;
+}
+
+.selected {
+    stroke: black;
 }

@@ -5,8 +5,9 @@ class StackedHistogram {
    * @param _config {Object}
    * @param _data {Array}
    * @param _genres {Set}
+   * @param _dispatcher {Object}
    */
-  constructor(_config, _data, _genres) {
+  constructor(_config, _data, _genres, _dispatcher) {
     // Configuration object with defaults
     this.config = {
       parentElement: _config.parentElement,
@@ -35,6 +36,8 @@ class StackedHistogram {
     genreKeys.sort();
     this.genreKeys = genreKeys;
     this.selectedGenres = new Set();
+    this.dispatcher = _dispatcher;
+    this.activeSegment = null;
     this.initVis();
   }
 
@@ -122,6 +125,20 @@ class StackedHistogram {
         .keys(this.genreKeys)(scores)
         .map(d => (d.forEach(v => v.key = d.key), d));
 
+    if (vis.activeSegment !== null) {
+      for (const genre of vis.series) {
+        if (vis.activeSegment.genre === genre.key) {
+          for (const score of genre) {
+            if (vis.activeSegment.score === score.data.score) {
+              score.active = true;
+              break;
+            }
+          }
+          break;
+        }
+      }
+    }
+
     vis.xScale.domain(scores.map(d => d.score));
 
     vis.yScale.domain([0, d3.max(vis.series, d => d3.max(d, d => d[1]))]);
@@ -153,6 +170,7 @@ class StackedHistogram {
           .attr("class", "bar")
           .attr("height", d => vis.yScale(d[0]) - vis.yScale(d[1]))
           .attr("width", vis.xScale.bandwidth())
+          .classed("active", d => d.active)
         .on("mousemove", (event, d) => {
           d3.select('#tooltip')
               .style('display', 'block')
@@ -165,6 +183,10 @@ class StackedHistogram {
         })
         .on('mouseleave', () => {
           d3.select('#tooltip').style('display', 'none');
+        })
+        .on('click', (event, d) => {
+          vis.dispatcher.call('clickSegment', this, d);
+          vis.segmentClick(d);
         });
 
     // Append empty x-axis group and move it to the bottom of the chart
@@ -194,6 +216,22 @@ class StackedHistogram {
       vis.selectedGenres.delete(genre);
     } else {
       vis.selectedGenres.add(genre);
+    }
+    vis.updateVis();
+  }
+
+  segmentClick(data) {
+    let vis = this;
+    if (vis.activeSegment !== null &&
+        vis.activeSegment.genre === data.key &&
+        vis.activeSegment.score === data.data.score) {
+      vis.activeSegment = null;
+    }
+    else {
+      vis.activeSegment = {
+        genre: data.key,
+        score: data.data.score
+      };
     }
     vis.updateVis();
   }
