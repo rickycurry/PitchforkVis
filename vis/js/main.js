@@ -1,22 +1,37 @@
-let data, genres;
+let reviews, labels, genres;
 let stackedHistogram;
 
 const dispatcher = d3.dispatch('clickSegment');
 
-async function loadData() {
-  data = await d3.json('../data/reviews.json');
-  data.forEach(d => {
+async function loadReviews() {
+  reviews = await d3.json('../data/reviews.json');
+  reviews.forEach(d => {
     d['score'] = +d['score'];
     d['publish_date'] = new Date(d['publish_date']);
   });
   genres = _getAllGenres();
 }
 
+async function loadLabels() {
+  labels = await d3.json('../data/labels.json');
+  labels.forEach(d => {
+    d['count'] = +d['count'];
+    d['mean'] = +d['mean'];
+    d['median'] = +d['median'];
+    d['std_dev'] = +d['std_dev'];
+  });
+}
+
+async function loadData() {
+  await Promise.all([
+      loadReviews(),
+      loadLabels()
+  ]);
+}
+
 async function main() {
   await loadData();
-  console.log(data.length)
-
-  stackedHistogram = new StackedHistogram({parentElement: '#histogram'}, data, genres, dispatcher);
+  stackedHistogram = new StackedHistogram({parentElement: '#histogram'}, reviews, genres, dispatcher);
 }
 
 main();
@@ -26,7 +41,7 @@ dispatcher.on('clickSegment', segment => {
   const score = segment.data.score;
 
   // filter the reviews to match the passed in segment
-  const filteredReviews = data.filter(d => {
+  const filteredReviews = reviews.filter(d => {
     return d['score'] === score && d['genres'].includes(genre);
   });
   filteredReviews.sort((review1, review2) => review1['release_year'] - review2['release_year']);
@@ -49,7 +64,7 @@ dispatcher.on('clickSegment', segment => {
 function _getAllGenres() {
   let genres = new Set();
   genres.add("No genre specified");
-  data.forEach(d => {
+  reviews.forEach(d => {
     d['genres'].forEach(g => {
       genres.add(g);
     })
