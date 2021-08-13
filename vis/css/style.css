@@ -48,10 +48,18 @@ h3 {
     stroke: #555;
 }
 
+.point {
+    opacity: 0.3;
+}
+.point:hover {
+    stroke: black;
+    /*stroke-opacity: 100%;*/
+    /*stroke-width: 1px;*/
+}
+
 .bar:hover {
     stroke: black;
 }
-
 .bar.active {
     stroke: black;
 }
@@ -74,6 +82,7 @@ h3 {
     display: flex;
     flex-direction: row;
     justify-content: center;
+    margin-bottom: 2rem;
 }
 
 .container-left {

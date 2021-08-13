@@ -1,5 +1,5 @@
 let reviews, labels, genres;
-let stackedHistogram;
+let stackedHistogram, scatterPlot;
 
 const dispatcher = d3.dispatch('clickSegment');
 
@@ -32,6 +32,7 @@ async function loadData() {
 async function main() {
   await loadData();
   stackedHistogram = new StackedHistogram({parentElement: '#histogram'}, reviews, genres, dispatcher);
+  scatterPlot = new ScatterPlot({parentElement: '#scatter-plot'}, labels, dispatcher);
 }
 
 main();
@@ -47,11 +48,11 @@ dispatcher.on('clickSegment', segment => {
   filteredReviews.sort((review1, review2) => review1['release_year'] - review2['release_year']);
 
   // remove the existing list entries
-  const list = document.getElementById('filtered-albums');
+  const list = document.getElementById('filtered-albums-genre-score');
   list.innerHTML = "";
 
   // change the right-container header
-  document.getElementById('album-list-title').innerText = genre + ", " + score.toFixed(1);
+  document.getElementById('album-list-title-genre-score').innerText = genre + ", " + score.toFixed(1);
 
   // append the filtered reviews to the <ul>
   filteredReviews.forEach(review => {

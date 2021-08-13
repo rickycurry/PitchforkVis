@@ -15,9 +15,20 @@
             <div class="chart"><svg id="histogram"></svg></div>
         </div>
         <div class="container-right">
-            <h3 id="album-list-title">Click a segment to view its reviews</h3>
+            <h3 id="album-list-title-genre-score">Click a segment to see its reviews</h3>
             <div class="album-list">
-                <ul id="filtered-albums"></ul>
+                <ul id="filtered-albums-genre-score"></ul>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="container-left">
+            <div class="chart"><svg id="scatter-plot"></svg></div>
+        </div>
+        <div class="container-right">
+            <h3 id="album-list-title-label">Click a label to see its reviews</h3>
+            <div class="album-list">
+                <ul id="filtered-albums-label"></ul>
             </div>
         </div>
     </div>
@@ -28,7 +39,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.min.js"></script>
 
     <!-- Our JS code -->
-    <script src="js/main.js"></script>
+    <script src="js/scatterplot.js"></script>
     <script src="js/histogram.js"></script>
+    <script src="js/main.js"></script>
+
 </body>
 </html>
