@@ -1,7 +1,10 @@
 let reviews, labels, genres;
 let stackedHistogram, scatterPlot;
 
-const dispatcher = d3.dispatch('clickSegment');
+const dispatcher = d3.dispatch(
+    'clickSegment',
+    'clickLabel'
+);
 
 async function loadReviews() {
   reviews = await d3.json('../data/reviews.json');
@@ -41,26 +44,58 @@ dispatcher.on('clickSegment', segment => {
   const genre = segment.key;
   const score = segment.data.score;
 
+  // change the right-container header
+  document.getElementById('album-list-title-genre-score')
+      .innerText = genre + ", " + score.toFixed(1);
+
   // filter the reviews to match the passed in segment
   const filteredReviews = reviews.filter(d => {
     return d['score'] === score && d['genres'].includes(genre);
   });
+  _updateAlbumLists(
+      'filtered-albums-genre-score',
+      review => `${review['artists']} — \
+      ${review['album'].italics()} \
+      (${review['release_year']})`,
+      filteredReviews
+  );
+});
+
+dispatcher.on('clickLabel', label => {
+  const labelName = label.label;
+
+  // change the right-container header
+  document.getElementById('album-list-title-label')
+      .innerText = labelName;
+
+  // filter the reviews to match the passed in segment
+  const filteredReviews = reviews.filter(d => {
+    return d['labels'].includes(labelName);
+  });
+  _updateAlbumLists(
+      'filtered-albums-label',
+      review => `${review['artists']} — \
+      ${review['album'].italics()} \
+      (${review['release_year']}) \
+      <i>[${review['genres']}, <b>${review['score'].toFixed(1)}</b>]</i>`,
+      filteredReviews
+  );
+});
+
+function _updateAlbumLists(listId, listElementFormatting, filteredReviews) {
   filteredReviews.sort((review1, review2) => review1['release_year'] - review2['release_year']);
 
   // remove the existing list entries
-  const list = document.getElementById('filtered-albums-genre-score');
+  const list = document.getElementById(listId);
   list.innerHTML = "";
-
-  // change the right-container header
-  document.getElementById('album-list-title-genre-score').innerText = genre + ", " + score.toFixed(1);
 
   // append the filtered reviews to the <ul>
   filteredReviews.forEach(review => {
     const entry = document.createElement('li');
-    entry.innerHTML = `${review['artists']} — ${review['album'].italics()} (${review['release_year']})`;
+    entry.innerHTML = listElementFormatting(review);
     list.appendChild(entry);
   });
-});
+}
 
 function _getAllGenres() {
   let genres = new Set();

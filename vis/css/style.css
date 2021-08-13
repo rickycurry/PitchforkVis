@@ -49,12 +49,13 @@ h3 {
 }
 
 .point {
-    opacity: 0.3;
+    fill-opacity: 0.3;
+    stroke: black;
+    stroke-width: 1px;
+    stroke-opacity: 45%;
 }
 .point:hover {
-    stroke: black;
-    /*stroke-opacity: 100%;*/
-    /*stroke-width: 1px;*/
+    stroke-opacity: 100%;
 }
 
 .bar:hover {

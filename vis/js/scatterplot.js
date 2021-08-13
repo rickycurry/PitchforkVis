@@ -107,9 +107,13 @@ class ScatterPlot {
           .style('left', (event.pageX + vis.config.tooltipPadding) + 'px')
           .style('top', (event.pageY + vis.config.tooltipPadding) + 'px')
           .html(`<div class="tooltip-title">${d.label}</div>`);
-    })
-    .on('mouseleave', () => {
+      })
+      .on('mouseleave', () => {
       d3.select('#tooltip').style('display', 'none');
-    });
+      })
+      .on('click', (event, d) => {
+        vis.dispatcher.call('clickLabel', this, d);
+        // vis.segmentClick(d);
+      });
   }
 }
