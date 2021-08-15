@@ -47,15 +47,17 @@ h3 {
 .swatch {
     stroke: #555;
 }
+.swatch.translucent {
+    fill-opacity: 0.7;
+}
 
 .point {
-    fill-opacity: 0.3;
-    stroke: black;
+    fill-opacity: 0.7;
+    stroke: #555;
     stroke-width: 1px;
-    stroke-opacity: 45%;
 }
 .point:hover {
-    stroke-opacity: 100%;
+    stroke: black;
 }
 
 .bar:hover {

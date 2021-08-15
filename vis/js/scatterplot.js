@@ -12,14 +12,17 @@ class ScatterPlot {
       parentElement: _config.parentElement,
       containerWidth: _config.containerWidth || 1100,
       containerHeight: _config.containerHeight || 680,
-      margin: _config.margin || {top: 10, right: 10, bottom: 35, left: 60},
+      margin: _config.margin || {top: 30, right: 10, bottom: 35, left: 60},
+      legendTransform: _config.legendTransform || {down: 15, right: 20},
       tooltipPadding: _config.tooltipPadding || 10,
       countCutoff: _config.countCutoff || 5,
     }
     _data = _data.filter(d => d.count >= this.config.countCutoff);
     _data.sort((d1, d2) => d2.count - d1.count);
     this.data = _data;
+    this.genres = _data.map(d => d['majority_genre']).sort();
     this.dispatcher = _dispatcher;
+    this.selectedGenres = new Set();
     this.initVis();
   }
 
@@ -32,13 +35,18 @@ class ScatterPlot {
 
     // Initialize scales and axes
     vis.xScale = d3.scaleLinear()
-        .range([0, vis.width]);
+        .range([0, vis.width])
+        .domain([Math.floor(d3.min(vis.data, d => d.mean)),
+          Math.ceil(d3.max(vis.data, d => d.mean))]);
 
     vis.yScale = d3.scaleLinear()
-        .rangeRound([vis.height, 0]);
+        .rangeRound([vis.height, 0])
+        .domain([d3.max(vis.data, d => d['std_dev']), 0]);
 
     vis.radiusScale = d3.scaleSqrt()
-        .range([4, 30]);
+        .range([4, 30])
+        .domain([d3.min(vis.data, d => d.count),
+          d3.max(vis.data, d => d.count)]);
 
     vis.xAxis = d3.axisBottom(vis.xScale)
         .tickValues([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
@@ -64,23 +72,22 @@ class ScatterPlot {
         .attr('y', vis.height + 35)
         .attr('x', vis.width / 2)
         .style('text-anchor', 'middle')
-        .text('Score');
+        .text('score');
 
-    vis.updateVis();
-  }
+    vis.chart.append('text')
+        .attr('class', 'axis-title')
+        .attr('transform', `translate(-45,-10)`)
+        .style('text-anchor', 'start')
+        .text('standard deviation');
 
-  updateVis() {
-    let vis = this;
-    vis.xScale.domain([Math.floor(d3.min(vis.data, d => d.mean)),
-                       Math.ceil(d3.max(vis.data, d => d.mean))]);
-    vis.yScale.domain([d3.max(vis.data, d => d['std_dev']), 0]);
-    vis.radiusScale.domain([d3.min(vis.data, d => d.count),
-                            d3.max(vis.data, d => d.count)]);
-    vis.renderVis();
-  }
+    vis.colorScale = d3.scaleOrdinal()
+        .domain(vis.genres)
+        .range(d3.schemeCategory10);
 
-  renderVis() {
-    let vis = this;
+    vis.legend = d3.legendColor()
+        .scale(vis.colorScale)
+        .ascending(true)
+        .shapePadding(6);
 
     vis.chart.append('g')
         .attr('class', 'axis y-axis')
@@ -91,15 +98,43 @@ class ScatterPlot {
         .attr('transform', `translate(0,${vis.height})`)
         .call(vis.xAxis);
 
+    vis.legendG = vis.chart.append('g')
+        .attr("transform", `translate(${vis.config.legendTransform.right},${vis.config.legendTransform.down})`)
+        .call(vis.legend);
+
+    vis.chart.selectAll('.swatch')
+        .classed("translucent", true);
+
+    vis.updateVis();
+  }
+
+  updateVis() {
+    let vis = this;
+
+    vis.filteredData = vis.data.filter(d => {
+      if (vis.selectedGenres.size === 0) {
+        return true;
+      } else {
+        const genre = d['majority_genre'];
+        return vis.selectedGenres.has(genre);
+      }
+    });
+
+    vis.renderVis();
+  }
+
+  renderVis() {
+    let vis = this;
+
 // Add circles
     const circles = vis.chart.selectAll('.point')
-        .data(vis.data, d => d.label)
+        .data(vis.filteredData, d => d.label)
         .join('circle')
         .attr('class', 'point')
         .attr('r', d => vis.radiusScale(d.count))
         .attr('cy', d => vis.yScale(d['std_dev']))
         .attr('cx', d => vis.xScale(d.mean))
-        .attr('fill', 'black');
+        .attr('fill', d => vis.colorScale(d['majority_genre']));
 
     circles.on("mousemove", (event, d) => {
       d3.select('#tooltip')
@@ -115,5 +150,20 @@ class ScatterPlot {
         vis.dispatcher.call('clickLabel', this, d);
         // vis.segmentClick(d);
       });
+
+    vis.chart.selectAll('.cell')
+        .on("click", (event, d) => {
+          vis.activateGenre(d);
+        });
+  }
+
+  activateGenre(genre) {
+    let vis = this;
+    if (vis.selectedGenres.has(genre)) {
+      vis.selectedGenres.delete(genre);
+    } else {
+      vis.selectedGenres.add(genre);
+    }
+    vis.updateVis();
   }
 }

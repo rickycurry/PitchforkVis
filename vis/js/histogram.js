@@ -75,12 +75,19 @@ class StackedHistogram {
     vis.chart = vis.svg.append('g')
         .attr('transform', `translate(${vis.config.margin.left},${vis.config.margin.top})`);
 
+    // x axis title
     vis.chart.append('text')
         .attr('class', 'axis-title')
         .attr('y', vis.height + 35)
         .attr('x', vis.width / 2)
         .style('text-anchor', 'middle')
-        .text('Score');
+        .text('score');
+
+    vis.chart.append('text')
+        .attr('class', 'axis-title')
+        .attr('transform', `translate(-45,15)`)
+        .style('text-anchor', 'start')
+        .text('count');
 
     vis.updateVis();
   }
@@ -144,7 +151,7 @@ class StackedHistogram {
     vis.yScale.domain([0, d3.max(vis.series, d => d3.max(d, d => d[1]))]);
 
     vis.colorScale = d3.scaleOrdinal()
-        .domain(vis.series.map(d => d.key))
+        .domain(vis.genreKeys)
         .range(d3.schemeCategory10);
 
     vis.legend = d3.legendColor()
