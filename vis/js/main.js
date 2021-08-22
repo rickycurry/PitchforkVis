@@ -1,9 +1,10 @@
 let reviews, labels, genres;
-let stackedHistogram, scatterPlot;
+let stackedHistogram, scatterPlot, lineChart;
 
 const dispatcher = d3.dispatch(
     'clickSegment',
-    'clickLabel'
+    'clickLabel',
+    'hoverLabel'
 );
 
 async function loadReviews() {
@@ -36,6 +37,7 @@ async function main() {
   await loadData();
   stackedHistogram = new StackedHistogram({parentElement: '#histogram'}, reviews, genres, dispatcher);
   scatterPlot = new ScatterPlot({parentElement: '#scatter-plot'}, labels, dispatcher);
+  lineChart = new LineChart({parentElement: '#label-tooltip'});
 }
 
 main();
@@ -80,6 +82,15 @@ dispatcher.on('clickLabel', label => {
       <i>[${review['genres']}, <b>${review['score'].toFixed(1)}</b>]</i>`,
       filteredReviews
   );
+});
+
+dispatcher.on('hoverLabel', label => {
+  // TODO: cache the filtered reviews in 'clickLabel' since we have to
+  //  hover before we click, by definition :)
+  const filteredReviews = reviews.filter(d => {
+    return d['labels'].includes(label.label);
+  }).sort((review1, review2) => review1['publish_date'] - review2['publish_date']);
+  lineChart.updateVis(label.label, filteredReviews);
 });
 
 function _updateAlbumLists(listId, listElementFormatting, filteredReviews) {

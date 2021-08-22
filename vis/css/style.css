@@ -4,12 +4,12 @@ text {
     color: #3F3844
 }
 
+/* Text */
 .tooltip-title {
     font-family: 'Verdana', sans-serif;
     font-size: 16px;
     color: #3F3844
 }
-
 .tooltip-body {
     font-family: 'Verdana', sans-serif;
     font-size: 13px;
@@ -40,10 +40,10 @@ h3 {
     stroke: #bbb;
 }
 
+/* Legends */
 .cell {
     cursor: pointer;
 }
-
 .swatch {
     stroke: #555;
 }
@@ -51,22 +51,37 @@ h3 {
     fill-opacity: 0.7;
 }
 
-.point {
+/* Record label scatter plot */
+.label-mark {
     fill-opacity: 0.7;
     stroke: #555;
     stroke-width: 1px;
 }
-.point:hover {
+.label-mark:hover {
     stroke: black;
 }
 
+/* Histogram */
 .bar:hover {
     stroke: black;
 }
 .bar.active {
     stroke: black;
 }
+.selected {
+    stroke: black;
+}
 
+/* Line chart */
+.path {
+    fill: none;
+    stroke: steelblue;
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+}
+
+/* Tooltips */
 #tooltip {
     position: absolute;
     display: none;
@@ -80,7 +95,20 @@ h3 {
     color: #000;
     max-width: 170px;
 }
+#label-tooltip {
+    position: absolute;
+    display: none;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 2px 2px 3px 0 #7a7a7a;
+    border: 1px solid #ddd;
+    font-size: 10px;
+    font-weight: 500;
+    padding: 10px;
+    color: #000;
+}
 
+/* Layout */
 .container {
     display: flex;
     flex-direction: row;
@@ -104,8 +132,4 @@ h3 {
     margin-top: 1rem;
     height: 620px;
     overflow: auto;
-}
-
-.selected {
-    stroke: black;
 }

@@ -127,28 +127,38 @@ class ScatterPlot {
     let vis = this;
 
 // Add circles
-    const circles = vis.chart.selectAll('.point')
+    const circles = vis.chart.selectAll('.label-mark')
         .data(vis.filteredData, d => d.label)
         .join('circle')
-        .attr('class', 'point')
+        .attr('class', 'label-mark')
         .attr('r', d => vis.radiusScale(d.count))
         .attr('cy', d => vis.yScale(d['std_dev']))
         .attr('cx', d => vis.xScale(d.mean))
         .attr('fill', d => vis.colorScale(d['majority_genre']));
 
-    circles.on("mousemove", (event, d) => {
-      d3.select('#tooltip')
-          .style('display', 'block')
-          .style('left', (event.pageX + vis.config.tooltipPadding) + 'px')
-          .style('top', (event.pageY + vis.config.tooltipPadding) + 'px')
-          .html(`<div class="tooltip-title">${d.label}</div>`);
+    circles.on("mouseenter", (event, d) => {
+        d3.select('#label-tooltip')
+            .style('display', 'block')
+            // TODO: the positioning should adapt to the on-screen location,
+            //  i.e. make sure that a top left mark spawns a lower right
+            //  tooltip, whereas a bottom right tooltip spawns an upper left
+            //  tooltip.
+            .style('left', (event.pageX + vis.config.tooltipPadding) + 'px')
+            .style('top', (event.pageY + vis.config.tooltipPadding) + 'px');
+        vis.dispatcher.call('hoverLabel', event, d);
+      })
+      .on("mousemove", event => {
+        d3.select('#label-tooltip')
+            .style('display', 'block')
+            // TODO: same here
+            .style('left', (event.pageX + vis.config.tooltipPadding) + 'px')
+            .style('top', (event.pageY + vis.config.tooltipPadding) + 'px');
       })
       .on('mouseleave', () => {
-      d3.select('#tooltip').style('display', 'none');
+        d3.select('#label-tooltip').style('display', 'none');
       })
       .on('click', (event, d) => {
         vis.dispatcher.call('clickLabel', this, d);
-        // vis.segmentClick(d);
       });
 
     vis.chart.selectAll('.cell')
