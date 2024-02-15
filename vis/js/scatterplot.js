@@ -126,7 +126,7 @@ class ScatterPlot {
   renderVis() {
     let vis = this;
 
-// Add circles
+    // Add circles
     const circles = vis.chart.selectAll('.label-mark')
         .data(vis.filteredData, d => d.label)
         .join('circle')
@@ -137,22 +137,10 @@ class ScatterPlot {
         .attr('fill', d => vis.colorScale(d['majority_genre']));
 
     circles.on("mouseenter", (event, d) => {
-        d3.select('#label-tooltip')
-            .style('display', 'block')
-            // TODO: the positioning should adapt to the on-screen location,
-            //  i.e. make sure that a top left mark spawns a lower right
-            //  tooltip, whereas a bottom right tooltip spawns an upper left
-            //  tooltip.
-            .style('left', (event.pageX + vis.config.tooltipPadding) + 'px')
-            .style('top', (event.pageY + vis.config.tooltipPadding) + 'px');
-        vis.dispatcher.call('hoverLabel', event, d);
+        vis.onMouseEnterOrMove(event, d, true);
       })
       .on("mousemove", event => {
-        d3.select('#label-tooltip')
-            .style('display', 'block')
-            // TODO: same here
-            .style('left', (event.pageX + vis.config.tooltipPadding) + 'px')
-            .style('top', (event.pageY + vis.config.tooltipPadding) + 'px');
+        vis.onMouseEnterOrMove(event, null, false);
       })
       .on('mouseleave', () => {
         d3.select('#label-tooltip').style('display', 'none');
@@ -175,5 +163,20 @@ class ScatterPlot {
       vis.selectedGenres.add(genre);
     }
     vis.updateVis();
+  }
+
+  onMouseEnterOrMove(event, d, shouldCallHoverLabel) {
+    let vis = this;
+    d3.select('#label-tooltip')
+      .style('display', 'block')
+      // TODO: the positioning should adapt to the on-screen location,
+      //  i.e. make sure that a top left mark spawns a lower right
+      //  tooltip, whereas a bottom right tooltip spawns an upper left
+      //  tooltip.
+      .style('left', (event.pageX + vis.config.tooltipPadding) + 'px')
+      .style('top', (event.pageY + vis.config.tooltipPadding) + 'px');
+    if (shouldCallHoverLabel) {
+      vis.dispatcher.call('hoverLabel', event, d);
+    }
   }
 }
