@@ -16,6 +16,7 @@ class ScatterPlot {
       margin: _config.margin || {top: 30, right: 10, bottom: 35, left: 60},
       legendTransform: _config.legendTransform || {down: 15, right: 20},
       tooltipPadding: _config.tooltipPadding || 10,
+      tooltipSafetyPadding: _config.tooltipSafetyPadding || 10, // HACK: not ideal
       countCutoff: _config.countCutoff || 5,
     }
     _data = _data.filter(d => d.count >= this.config.countCutoff);
@@ -172,8 +173,9 @@ class ScatterPlot {
     d3.select('#label-tooltip').style('display', 'block');
 
     const tooltipConfig = vis.tooltipChart.config;
-    const windowBottom = event.clientY + tooltipConfig.containerHeight + vis.config.tooltipPadding;
-    const windowRight = event.clientX + tooltipConfig.containerWidth + vis.config.tooltipPadding;
+    const padding = vis.config.tooltipPadding + vis.config.tooltipSafetyPadding
+    const windowBottom = event.clientY + tooltipConfig.containerHeight + padding;
+    const windowRight = event.clientX + tooltipConfig.containerWidth + padding;
 
     d3.select('#label-tooltip')
         .style('top', windowBottom < window.innerHeight ?
