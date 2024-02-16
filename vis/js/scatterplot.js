@@ -5,8 +5,9 @@ class ScatterPlot {
    * @param _config {Object}
    * @param _data {Array}
    * @param _dispatcher {Object}
+   * @param _tooltipChart {LineChart}
    */
-  constructor(_config, _data, _dispatcher) {
+  constructor(_config, _data, _dispatcher, _tooltipChart) {
     // Configuration object with defaults
     this.config = {
       parentElement: _config.parentElement,
@@ -22,6 +23,7 @@ class ScatterPlot {
     this.data = _data;
     this.genres = _data.map(d => d['majority_genre']).sort();
     this.dispatcher = _dispatcher;
+    this.tooltipChart = _tooltipChart;
     this.selectedGenres = new Set();
     this.initVis();
   }
@@ -167,14 +169,20 @@ class ScatterPlot {
 
   onMouseEnterOrMove(event, d, shouldCallHoverLabel) {
     let vis = this;
+    d3.select('#label-tooltip').style('display', 'block');
+
+    const tooltipConfig = vis.tooltipChart.config;
+    const windowBottom = event.clientY + tooltipConfig.containerHeight + vis.config.tooltipPadding;
+    const windowRight = event.clientX + tooltipConfig.containerWidth + vis.config.tooltipPadding;
+
     d3.select('#label-tooltip')
-      .style('display', 'block')
-      // TODO: the positioning should adapt to the on-screen location,
-      //  i.e. make sure that a top left mark spawns a lower right
-      //  tooltip, whereas a bottom right tooltip spawns an upper left
-      //  tooltip.
-      .style('left', (event.pageX + vis.config.tooltipPadding) + 'px')
-      .style('top', (event.pageY + vis.config.tooltipPadding) + 'px');
+        .style('top', windowBottom < window.innerHeight ?
+          (event.pageY + vis.config.tooltipPadding)
+            : (event.pageY - 2 * vis.config.tooltipPadding - tooltipConfig.containerHeight) + 'px')
+        .style('left', windowRight < window.innerWidth ?
+          (event.pageX + vis.config.tooltipPadding)
+            : (event.pageX - 2 * vis.config.tooltipPadding - tooltipConfig.containerWidth) + 'px');
+
     if (shouldCallHoverLabel) {
       vis.dispatcher.call('hoverLabel', event, d);
     }

@@ -35,9 +35,9 @@ async function loadData() {
 
 async function main() {
   await loadData();
-  stackedHistogram = new StackedHistogram({parentElement: '#histogram'}, reviews, genres, dispatcher);
-  scatterPlot = new ScatterPlot({parentElement: '#scatter-plot'}, labels, dispatcher);
   lineChart = new LineChart({parentElement: '#label-tooltip'});
+  stackedHistogram = new StackedHistogram({parentElement: '#histogram'}, reviews, genres, dispatcher);
+  scatterPlot = new ScatterPlot({parentElement: '#scatter-plot'}, labels, dispatcher, lineChart);
 }
 
 main();
