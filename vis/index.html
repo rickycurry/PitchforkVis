@@ -10,6 +10,28 @@
     <h1>PitchforkVis</h1>
     <h3>Visualizing 26 years of music criticism</h3>
     <!-- Add HTML content, SVG drawing area, ... -->
+    <!-- Histogram -->
+    <p>
+        The following histogram represents all Pitchfork reviews published between 1999 and August 2021. 
+        The histogram's bin width matches Pitchfork's review granularity of 0.1 points. 
+        Each genre is represented by a different color. 
+        (Sorry if you have trouble discerning between genres — I will address color accessibility when I can!)
+    </p>
+    <p>
+        Clicking on genres on the legend will add or remove them from the current "genre selection", and as long as at least one genre is selected, only selected genres will appear on the chart. 
+        This makes it easier to read the distribution of less populated genres, and to compare distributions among a smaller number of genres.
+    </p>
+    <p>
+        Hovering your mouse over a histogram segment will cause a tooltip to appear which describes the segment (genre, score, and <i>review count</i>*). 
+        Clicking on a histogram segment populates the right-hand panel with all the individual albums belonging to that segment.
+    </p>
+    <p>
+        *A note on review count: some albums are listed as multiple genres. 
+        I divided the count evenly between each genre listed to avoid double-counting, but this leads to the rather unintuitive consequence of having decimal-valued counts in the tooltip.
+    </p>
+
+    <h3> Review distribution </h3>
+
     <div class="container">
         <div class="container-left">
             <div class="chart"><svg id="histogram"></svg></div>
@@ -21,6 +43,33 @@
             </div>
         </div>
     </div>
+
+    <!-- Record labels scatter -->
+    <p>
+        The scatter plot below attempts to visualize the prolificacy, quality, consistency, and genre tendencies of all the record labels whose albums Pitchfork has reviewed.
+        Only labels with five or more reviews appear in this chart.
+    </p>
+    <p>
+        Record labels are positioned along the x-axis based on their mean review score, and along the y-axis based on their score standard deviation (which I am using in this case to convey the notion of "consistency" — hence the reversed y-axis, i.e. lower std dev = higher consistency).
+        Thus, labels that tend to receive better reviews appear further to the right, while labels who recieve consistent reviews across albums appear closer to the top.
+        I was interested in seeing whether any labels stood out in recieving consistently good or (perhaps of even greater interest) consistently bad reviews.
+    </p>
+    <p>
+        The size of each mark corresponds to the number of records reviewed per label, and the color indicates genre tendency. 
+        A label was determined to have a genre tendency if at least half of its albums were a particular genre.
+        Naturally, many labels did not meet this criteria, so I also assigned a color to "mixed".
+        (As with the previous chart, I need to clarify the color palette here, since the blues are quite dominant and difficult to discern.)
+    </p>
+    <p>
+        Again, the genre legend serves as an interactive visibility filter.
+    </p>
+    <p>
+        Clicking on a mark populates the right-hand panel with all the individual albums belonging to that record label.
+        Hovering over a mark reveals the label's name, along with a sub-plot which organizes the corresponding label's albums by release date and review score.
+    </p>
+
+    <h3> Record labels</h3>
+
     <div class="container">
         <div class="container-left">
             <div class="chart"><svg id="scatter-plot"></svg></div>
@@ -36,6 +85,20 @@
     <div id="label-tooltip-div">
         <svg id="label-tooltip"></svg>
     </div>
+
+    <h3> Future directions </h3>
+    <p>
+        I have several ideas for other types of visualizations, as well as visual improvements for the existing ones.
+    </p>
+    <p>
+        I would really like to explore linguistic analyses of the written review content to see if there are insights to be found there.
+        For instance, maybe writing about certain genres tends to explicitly reference other certain genres or sub-genres — if so, is this reference bidirectional or unidirectional?
+        Or perhaps sentiment analysis might reveal something interesting about the emotions we use when critiquing, analysing, and discussing music of various genres.
+    </p>
+    <p>
+        There is also low-hanging fruit to be picked when it comes to chronological visualizations. 
+        I predict that it would be interesting to chart the (Pitchfork-centric) prevalence of various genres over time, and likewise with individual artists over their career lifetimes.
+    </p>
 
     <!-- D3 bundle -->
     <script src="js/d3.v6.min.js"></script>

@@ -13,6 +13,7 @@ async function loadReviews() {
     d['score'] = +d['score'];
     d['publish_date'] = new Date(d['publish_date']);
   });
+  // TODO: this is really sub-optimal; save/load this instead
   genres = _getAllGenres();
 }
 
@@ -37,7 +38,7 @@ async function main() {
   await loadData();
   lineChart = new LineChart({parentElement: '#label-tooltip'});
   stackedHistogram = new StackedHistogram({parentElement: '#histogram'}, reviews, genres, dispatcher);
-  scatterPlot = new ScatterPlot({parentElement: '#scatter-plot'}, labels, dispatcher, lineChart);
+  scatterPlot = new ScatterPlot({parentElement: '#scatter-plot'}, labels, dispatcher, lineChart.config);
 }
 
 main();

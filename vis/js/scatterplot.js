@@ -5,9 +5,9 @@ class ScatterPlot {
    * @param _config {Object}
    * @param _data {Array}
    * @param _dispatcher {Object}
-   * @param _tooltipChart {LineChart}
+   * @param _tooltipConfig {LineChart}
    */
-  constructor(_config, _data, _dispatcher, _tooltipChart) {
+  constructor(_config, _data, _dispatcher, _tooltipConfig) {
     // Configuration object with defaults
     this.config = {
       parentElement: _config.parentElement,
@@ -24,7 +24,7 @@ class ScatterPlot {
     this.data = _data;
     this.genres = _data.map(d => d['majority_genre']).sort();
     this.dispatcher = _dispatcher;
-    this.tooltipChart = _tooltipChart;
+    this.tooltipConfig = _tooltipConfig;
     this.selectedGenres = new Set();
     this.initVis();
   }
@@ -140,6 +140,7 @@ class ScatterPlot {
         .attr('fill', d => vis.colorScale(d['majority_genre']));
 
     circles.on("mouseenter", (event, d) => {
+        d3.select('#label-tooltip').style('display', 'block');
         vis.onMouseEnterOrMove(event, d, true);
       })
       .on("mousemove", event => {
@@ -170,20 +171,18 @@ class ScatterPlot {
 
   onMouseEnterOrMove(event, d, shouldCallHoverLabel) {
     let vis = this;
-    d3.select('#label-tooltip').style('display', 'block');
 
-    const tooltipConfig = vis.tooltipChart.config;
     const padding = vis.config.tooltipPadding + vis.config.tooltipSafetyPadding
-    const windowBottom = event.clientY + tooltipConfig.containerHeight + padding;
-    const windowRight = event.clientX + tooltipConfig.containerWidth + padding;
+    const windowBottom = event.clientY + vis.tooltipConfig.containerHeight + padding;
+    const windowRight = event.clientX + vis.tooltipConfig.containerWidth + padding;
 
     d3.select('#label-tooltip')
         .style('top', windowBottom < window.innerHeight ?
           (event.pageY + vis.config.tooltipPadding)
-            : (event.pageY - 2 * vis.config.tooltipPadding - tooltipConfig.containerHeight) + 'px')
+            : (event.pageY - 3 * vis.config.tooltipPadding - vis.tooltipConfig.containerHeight) + 'px')
         .style('left', windowRight < window.innerWidth ?
           (event.pageX + vis.config.tooltipPadding)
-            : (event.pageX - 2 * vis.config.tooltipPadding - tooltipConfig.containerWidth) + 'px');
+            : (event.pageX - 3 * vis.config.tooltipPadding - vis.tooltipConfig.containerWidth) + 'px');
 
     if (shouldCallHoverLabel) {
       vis.dispatcher.call('hoverLabel', event, d);
