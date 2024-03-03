@@ -1,0 +1,7 @@
+/data/
+/venv_macintosh/
+**/.idea/workspace.xml
+**/.idea.tasks.xml
+**/.idea/**/*.xml
+launch.json
+*.iml
