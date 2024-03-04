@@ -1,4 +1,5 @@
-/data/
+/data/reviews/
+/data/reviews_dataframe.p
 /venv_macintosh/
 **/.idea/workspace.xml
 **/.idea.tasks.xml

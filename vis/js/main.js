@@ -7,6 +7,11 @@ const dispatcher = d3.dispatch(
     'hoverLabel'
 );
 
+async function loadEndDate() {
+  const text = await d3.text('../data/end_date.txt');
+  document.getElementById('end-date').innerText = text;
+}
+
 async function loadReviews() {
   reviews = await d3.json('../data/reviews.json');
   reviews.forEach(d => {
@@ -28,6 +33,7 @@ async function loadLabels() {
 }
 
 async function loadData() {
+  loadEndDate();
   await Promise.all([
       loadReviews(),
       loadLabels()
