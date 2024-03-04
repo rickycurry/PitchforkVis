@@ -131,12 +131,29 @@ h3 {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 300px;
+    width: 250px;
     font-family: 'Verdana', sans-serif;
+}
+
+.container-right img {
+    max-width: 120px;
+    border: solid transparent;
+}
+
+.container-right .bnm {
+    border: solid red;
 }
 
 .album-list {
     margin-top: 1rem;
     height: 620px;
     overflow: auto;
+}
+
+ul {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 10px;
+    row-gap: 10px;
+    list-style-type: none;
 }

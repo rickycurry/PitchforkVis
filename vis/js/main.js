@@ -1,5 +1,6 @@
 let reviews, labels, genres;
 let stackedHistogram, scatterPlot, lineChart;
+const baseUrl = "https://pitchfork.com/reviews/albums/"
 
 const dispatcher = d3.dispatch(
     'clickSegment',
@@ -49,6 +50,12 @@ async function main() {
 
 main();
 
+function getImagePreviewHTML(review) {
+  return `<a href=${baseUrl + review['href']} target="_blank"/> \
+    <img class=${review['bnm'] ? "bnm" : "non-bnm"} src=${review['artwork']}/>
+    </a>`;
+}
+
 dispatcher.on('clickSegment', segment => {
   const genre = segment.key;
   const score = segment.data.score;
@@ -62,11 +69,8 @@ dispatcher.on('clickSegment', segment => {
     return d['score'] === score && d['genres'].includes(genre);
   });
   _updateAlbumLists(
-      'filtered-albums-genre-score',
-      review => `${review['artists']} — \
-      ${review['album'].italics()} \
-      (${review['release_year']})`,
-      filteredReviews
+    'filtered-albums-genre-score',
+    filteredReviews
   );
 });
 
@@ -82,12 +86,8 @@ dispatcher.on('clickLabel', label => {
     return d['labels'].includes(labelName);
   });
   _updateAlbumLists(
-      'filtered-albums-label',
-      review => `${review['artists']} — \
-      ${review['album'].italics()} \
-      (${review['release_year']}) \
-      <i>[${review['genres']}, <b>${review['score'].toFixed(1)}</b>]</i>`,
-      filteredReviews
+    'filtered-albums-label',
+    filteredReviews
   );
 });
 
@@ -100,8 +100,9 @@ dispatcher.on('hoverLabel', label => {
   lineChart.updateVis(label.label, filteredReviews);
 });
 
-function _updateAlbumLists(listId, listElementFormatting, filteredReviews) {
-  filteredReviews.sort((review1, review2) => review1['release_year'] - review2['release_year']);
+function _updateAlbumLists(listId, filteredReviews) {
+  // sort newest to oldest
+  filteredReviews.sort((review1, review2) => review2['release_year'] - review1['release_year']);
 
   // remove the existing list entries
   const list = document.getElementById(listId);
@@ -110,7 +111,7 @@ function _updateAlbumLists(listId, listElementFormatting, filteredReviews) {
   // append the filtered reviews to the <ul>
   filteredReviews.forEach(review => {
     const entry = document.createElement('li');
-    entry.innerHTML = listElementFormatting(review);
+    entry.innerHTML = getImagePreviewHTML(review);
     list.appendChild(entry);
   });
 }
