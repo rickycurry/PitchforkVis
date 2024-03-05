@@ -103,16 +103,32 @@ function _updateAlbumLists(listId, filteredReviews) {
   // sort newest to oldest
   filteredReviews.sort((review1, review2) => review2['release_year'] - review1['release_year']);
 
-  // remove the existing list entries
-  const list = document.getElementById(listId);
-  list.innerHTML = "";
+  const albumImages = d3.select(`#${listId}`)
+    .selectAll('li')
+    .data(filteredReviews, d => d.href)
+    .join('li')
+    .append('a')
+      .attr('href', d => `https://pitchfork.com/reviews/albums/${d.href}`)
+      .attr('target', "_blank")
+    .append('img')
+      .attr('src', d => d.artwork)
+      .attr('class', d => d.bnm ? "bnm" : "")
 
-  // append the filtered reviews to the <ul>
-  filteredReviews.forEach(review => {
-    const entry = document.createElement('li');
-    entry.innerHTML = getImagePreviewHTML(review);
-    list.appendChild(entry);
-  });
+    .on("mousemove", (event, d) => {
+      const tooltip = d3.select('#album-tooltip')
+        .style('display', 'block')
+        .html(`
+          <div class="tooltip-title">${d.album}</div>
+          <div class="tooltip-body">${d.artists.join(', ')}</div>
+          `);
+      const albumTooltip = document.getElementById('album-tooltip');
+      const width = albumTooltip.offsetWidth;
+      tooltip.style('left', event.pageX - 10 - width + 'px')
+        .style('top', (event.pageY + 10) + 'px');
+    })
+    .on('mouseleave', () => {
+      d3.select('#album-tooltip').style('display', 'none');
+    })
 }
 
 function _getAllGenres() {

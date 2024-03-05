@@ -113,7 +113,6 @@ class LineChart {
         .attr('r', 2)
         .attr('cy', d => vis.yScale(d.score))
         .attr('cx', d => vis.xScale(d.publish_date));
-        // .attr('fill', d => vis.colorScale(d['majority_genre']));
 
     // Update axes
     vis.xAxisG.call(vis.xAxis)
