@@ -13,7 +13,7 @@ class ScatterPlot {
       parentElement: _config.parentElement,
       containerWidth: _config.containerWidth || 1100,
       containerHeight: _config.containerHeight || 680,
-      margin: _config.margin || {top: 30, right: 10, bottom: 35, left: 60},
+      margin: _config.margin || {top: 30, right: 20, bottom: 35, left: 60},
       legendTransform: _config.legendTransform || {down: 15, right: 20},
       tooltipPadding: _config.tooltipPadding || 10,
       tooltipSafetyPadding: _config.tooltipSafetyPadding || 10, // HACK: not ideal
@@ -89,7 +89,6 @@ class ScatterPlot {
 
     vis.legend = d3.legendColor()
         .scale(vis.colorScale)
-        .ascending(true)
         .shapePadding(6);
 
     vis.chart.append('g')

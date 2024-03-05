@@ -89,6 +89,14 @@ class StackedHistogram {
         .style('text-anchor', 'start')
         .text('count');
 
+    vis.colorScale = d3.scaleOrdinal()
+        .domain(vis.genreKeys)
+        .range(d3.schemeCategory10);
+
+    vis.legend = d3.legendColor()
+        .scale(vis.colorScale)
+        .shapePadding(6);
+
     vis.updateVis();
   }
 
@@ -149,15 +157,6 @@ class StackedHistogram {
     vis.xScale.domain(scores.map(d => d.score));
 
     vis.yScale.domain([0, d3.max(vis.series, d => d3.max(d, d => d[1]))]);
-
-    vis.colorScale = d3.scaleOrdinal()
-        .domain(vis.genreKeys)
-        .range(d3.schemeCategory10);
-
-    vis.legend = d3.legendColor()
-        .scale(vis.colorScale)
-        .ascending(true)
-        .shapePadding(6);
 
     vis.renderVis();
   }

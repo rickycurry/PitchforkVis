@@ -1,6 +1,5 @@
 let reviews, labels, genres;
 let stackedHistogram, scatterPlot, lineChart;
-const baseUrl = "https://pitchfork.com/reviews/albums/"
 
 const dispatcher = d3.dispatch(
     'clickSegment',
@@ -51,8 +50,8 @@ async function main() {
 main();
 
 function getImagePreviewHTML(review) {
-  return `<a href=${baseUrl + review['href']} target="_blank"/> \
-    <img class=${review['bnm'] ? "bnm" : "non-bnm"} src=${review['artwork']}/>
+  return `<a href="https://pitchfork.com/reviews/albums/${review['href']}" target="_blank"/> \
+    <img ${review['bnm'] ? "class=bnm" : ""} src=${review['artwork']}/>
     </a>`;
 }
 
