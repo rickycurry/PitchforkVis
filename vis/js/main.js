@@ -103,23 +103,22 @@ function _updateAlbumLists(listId, filteredReviews) {
   // sort newest to oldest
   filteredReviews.sort((review1, review2) => review2['release_year'] - review1['release_year']);
 
-  const albumImages = d3.select(`#${listId}`)
+  d3.select(`#${listId}`)
     .selectAll('li')
     .data(filteredReviews, d => d.href)
     .join('li')
-    .append('a')
-      .attr('href', d => `https://pitchfork.com/reviews/albums/${d.href}`)
-      .attr('target', "_blank")
-    .append('img')
-      .attr('src', d => d.artwork)
-      .attr('class', d => d.bnm ? "bnm" : "")
-
+    .html(d => `
+      <a href=https://pitchfork.com/reviews/albums/${d.href} target="_blank">
+        <img src=${d.artwork} ${d.bnm ? "class=bnm" : ""}>
+      </a>
+    `)
     .on("mousemove", (event, d) => {
       const tooltip = d3.select('#album-tooltip')
         .style('display', 'block')
         .html(`
-          <div class="tooltip-title">${d.album}</div>
-          <div class="tooltip-body">${d.artists.join(', ')}</div>
+          <div class="tooltip-title"><i>${d.album}</i></div>
+          <div class="tooltip-body"><b>${d.artists.join(', ')}</b></div>
+          <div class="tooltip-body">${d.abstract}</div>
           `);
       const albumTooltip = document.getElementById('album-tooltip');
       const width = albumTooltip.offsetWidth;
@@ -128,7 +127,7 @@ function _updateAlbumLists(listId, filteredReviews) {
     })
     .on('mouseleave', () => {
       d3.select('#album-tooltip').style('display', 'none');
-    })
+    });
 }
 
 function _getAllGenres() {
