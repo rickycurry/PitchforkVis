@@ -13,7 +13,7 @@ class ScatterPlot {
       parentElement: _config.parentElement,
       containerWidth: _config.containerWidth || 1100,
       containerHeight: _config.containerHeight || 680,
-      margin: _config.margin || {top: 30, right: 20, bottom: 35, left: 60},
+      margin: _config.margin || {top: 30, right: 10, bottom: 35, left: 60},
       legendTransform: _config.legendTransform || {down: 15, right: 20},
       tooltipPadding: _config.tooltipPadding || 10,
       tooltipSafetyPadding: _config.tooltipSafetyPadding || 10, // HACK: not ideal
@@ -72,6 +72,7 @@ class ScatterPlot {
 
     vis.chart.append('text')
         .attr('class', 'axis-title')
+        .classed('chart-text', true)
         .attr('y', vis.height + 35)
         .attr('x', vis.width / 2)
         .style('text-anchor', 'middle')
@@ -79,6 +80,7 @@ class ScatterPlot {
 
     vis.chart.append('text')
         .attr('class', 'axis-title')
+        .classed('chart-text', true)
         .attr('transform', `translate(-45,-10)`)
         .style('text-anchor', 'start')
         .text('standard deviation');
@@ -103,6 +105,9 @@ class ScatterPlot {
     vis.legendG = vis.chart.append('g')
         .attr("transform", `translate(${vis.config.legendTransform.right},${vis.config.legendTransform.down})`)
         .call(vis.legend);
+
+    d3.selectAll('.label')
+          .classed('chart-text', true);
 
     vis.chart.selectAll('.swatch')
         .classed("translucent", true);
