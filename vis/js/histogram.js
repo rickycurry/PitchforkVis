@@ -106,7 +106,7 @@ class StackedHistogram {
     let scores = [];
     for (let i = 0; i < 101; i++) {
       const score = i / 10.0;
-      const obj = {score: score, None: 0.0};
+      const obj = {score: score};
       Object.defineProperties(obj, vis.genreProperties);
       scores.push(obj);
     }
@@ -137,6 +137,8 @@ class StackedHistogram {
     });
 
     vis.series = d3.stack()
+        // Looks way worse this way, but the order matches the legend (alphabetical)
+        // .order(d3.stackOrderReverse)
         .keys(this.genreKeys)(scores)
         .map(d => (d.forEach(v => v.key = d.key), d));
 
@@ -211,7 +213,7 @@ class StackedHistogram {
         .call(vis.legend);
 
     vis.chart.selectAll('.cell')
-        .on("click", (event, d) => {
+        .on("click", (_event, d) => {
           vis.activateGenre(d);
         });
   }
@@ -240,5 +242,11 @@ class StackedHistogram {
       };
     }
     vis.updateVis();
+  }
+
+  updatePalette(palette) {
+    let vis = this;
+    vis.colorScale.range(palette);
+    vis.renderVis();
   }
 }

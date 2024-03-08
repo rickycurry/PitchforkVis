@@ -1,5 +1,6 @@
 let reviews, labels, genres;
 let stackedHistogram, scatterPlot, lineChart;
+let visualizations;
 
 const dispatcher = d3.dispatch(
     'clickSegment',
@@ -45,6 +46,7 @@ async function main() {
   lineChart = new LineChart({parentElement: '#label-tooltip'});
   stackedHistogram = new StackedHistogram({parentElement: '#histogram'}, reviews, genres, dispatcher);
   scatterPlot = new ScatterPlot({parentElement: '#scatter-plot'}, labels, dispatcher, lineChart.config);
+  visualizations = [stackedHistogram, scatterPlot, lineChart]
 }
 
 main();
@@ -146,7 +148,9 @@ checkbox.addEventListener('change', (event) => {
   const styleLink = document.getElementById("style-link");
   if (event.currentTarget.checked) {
     styleLink.setAttribute("href", "css/style_dark.css");
+    visualizations.forEach(v => v.updatePalette(dark12));
   } else {
     styleLink.setAttribute("href", "css/style_light.css");
+    visualizations.forEach(v => v.updatePalette(light12));
   }
 });
