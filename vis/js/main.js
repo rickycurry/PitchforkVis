@@ -140,3 +140,13 @@ function _getAllGenres() {
   });
   return genres;
 }
+
+const checkbox = document.getElementById("darkmode");
+checkbox.addEventListener('change', (event) => {
+  const styleLink = document.getElementById("style-link");
+  if (event.currentTarget.checked) {
+    styleLink.setAttribute("href", "css/style_dark.css");
+  } else {
+    styleLink.setAttribute("href", "css/style_light.css");
+  }
+});

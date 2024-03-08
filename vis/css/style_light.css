@@ -1,0 +1,67 @@
+html {
+    background-color: #fff
+}
+
+text {
+    color: #000;
+    fill: #000;
+}
+
+h1, h2, h3, p {
+    color: #000;
+}
+
+.tooltip-title {
+    color: #000
+}
+.tooltip-body {
+    color: #000
+}
+
+.axis line {
+    stroke: #555;
+}
+
+.axis path {
+    stroke: #555;
+}
+
+/* Ticks and lines */
+.tick line {
+    stroke: #666;
+}
+
+.domain {
+    stroke: #555;
+}
+
+/* Legends */
+.swatch {
+    stroke: #555;
+}
+
+/* Record label scatter plot */
+.label-mark {
+    stroke: #555;
+}
+.label-mark:hover {
+    stroke: #000;
+}
+
+/* Histogram */
+.bar:hover {
+    stroke: #000;
+}
+.bar.active {
+    stroke: #000;
+}
+.selected {
+    stroke: #000;
+}
+
+/* Tooltips */
+.tooltip {
+    background: #fff;
+    border: 1px solid #333;
+    color: #000;
+}

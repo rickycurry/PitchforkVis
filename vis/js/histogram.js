@@ -13,7 +13,7 @@ class StackedHistogram {
       parentElement: _config.parentElement,
       containerWidth: _config.containerWidth || 1100,
       containerHeight: _config.containerHeight || 680,
-      margin: _config.margin || {top: 10, right: 10, bottom: 35, left: 60},
+      margin: _config.margin || {top: 10, right: 15, bottom: 35, left: 60},
       legendTransform: _config.legendTransform || {down: 15, right: 20},
       tooltipPadding: _config.tooltipPadding || 10,
     }
@@ -85,7 +85,7 @@ class StackedHistogram {
 
     vis.chart.append('text')
         .attr('class', 'axis-title')
-        .attr('transform', `translate(-45,15)`)
+        .attr('transform', `translate(-45,0)`)
         .style('text-anchor', 'start')
         .text('count');
 
