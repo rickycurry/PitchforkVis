@@ -59,9 +59,16 @@ h1, h2, h3, p {
     stroke: #000;
 }
 
+/* Line chart */
+.point {
+    stroke: #000;
+    fill: #000;
+}
+
 /* Tooltips */
 .tooltip {
     background: #fff;
     border: 1px solid #333;
     color: #000;
+    box-shadow: 2px 2px 3px 0 #7a7a7a;
 }

@@ -87,7 +87,7 @@ class ScatterPlot {
 
     vis.colorScale = d3.scaleOrdinal()
         .domain(vis.genres)
-        .range(d3.schemeCategory10);
+        .range(dark6);
 
     vis.legend = d3.legendColor()
         .scale(vis.colorScale)
@@ -101,10 +101,6 @@ class ScatterPlot {
         .attr('class', 'axis x-axis')
         .attr('transform', `translate(0,${vis.height})`)
         .call(vis.xAxis);
-
-    vis.legendG = vis.chart.append('g')
-        .attr("transform", `translate(${vis.config.legendTransform.right},${vis.config.legendTransform.down})`)
-        .call(vis.legend);
 
     d3.selectAll('.label')
           .classed('chart-text', true);
@@ -157,8 +153,12 @@ class ScatterPlot {
         vis.dispatcher.call('clickLabel', this, d);
       });
 
+    vis.legendG = vis.chart.append('g')
+      .attr("transform", `translate(${vis.config.legendTransform.right},${vis.config.legendTransform.down})`)
+      .call(vis.legend);
+
     vis.chart.selectAll('.cell')
-        .on("click", (event, d) => {
+        .on("click", (_event, d) => {
           vis.activateGenre(d);
         });
   }
@@ -191,5 +191,11 @@ class ScatterPlot {
     if (shouldCallHoverLabel) {
       vis.dispatcher.call('hoverLabel', event, d);
     }
+  }
+
+  updatePalette(palette) {
+    let vis = this;
+    vis.colorScale.range(palette);
+    vis.renderVis();
   }
 }

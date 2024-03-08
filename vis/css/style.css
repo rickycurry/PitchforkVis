@@ -63,15 +63,6 @@ p {
     stroke-width: 1px;
 }
 
-/* Line chart */
-.path {
-    fill: none;
-    stroke: steelblue;
-    stroke-width: 1.5;
-    stroke-linejoin: round;
-    stroke-linecap: round;
-}
-
 /* Tooltips */
 .tooltip {
     position: absolute;
