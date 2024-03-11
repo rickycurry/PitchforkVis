@@ -69,11 +69,11 @@ dispatcher.on('clickSegment', segment => {
       .innerText = genre + ", " + score.toFixed(1);
 
   // filter the reviews to match the passed in segment
-  const filteredReviews = reviews.filter(d => {
-    return d['score'] === score 
-      && (genre === CONDENSED_GENRE_STRING) 
-        ? d['genres'].some((element) => stackedHistogram.secondaryGenres.has(element))
-        : d['genres'].includes(genre)
+  const filteredReviews = reviews.filter(r => {
+    return r['score'] === score 
+      && ((genre === CONDENSED_GENRE_STRING) 
+        ? r['genres'].some((element) => stackedHistogram.secondaryGenres.has(element))
+        : r['genres'].includes(genre));
   });
   _updateAlbumLists(
     'filtered-albums-genre-score',
