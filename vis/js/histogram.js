@@ -38,13 +38,14 @@ class StackedHistogram {
       this.genreKeys.push(genre);
     });
 
+    // We condense down to (genreLimit) genres to respect color perceptual principles
     this.primaryGenres = new Set(genres.slice(0, genreLimit - 1));
     this.primaryGenres.add("Various");
     this.secondaryGenres = new Set(genres.slice(genreLimit - 1));
+    this.secondaryGenres.add("Return to primary view");
 
     this.selectedGenres = new Set();
     this.dispatcher = _dispatcher;
-    this.activeSegment = null;
     this.isPrimaryMode = true;
     this.initVis();
   }
@@ -100,7 +101,6 @@ class StackedHistogram {
         .text('count');
 
     vis.colorScale = d3.scaleOrdinal()
-        .domain(Array.from(vis.primaryGenres))
         .range(vis.defaultPalette);
 
     vis.legend = d3.legendColor()
@@ -113,12 +113,32 @@ class StackedHistogram {
   updateVis() {
     let vis = this;
 
-    const filteredTidyData = vis.tidyData.filter(d => {
+    let filteredTidyData;
+    if (vis.isPrimaryMode) {
+      vis.colorScale.domain(vis.primaryGenres);
+      const condensedTidyData = vis.tidyData.filter(d => vis.primaryGenres.has(d.genre));
+      const dataToCondense = vis.tidyData.filter(d => vis.secondaryGenres.has(d.genre));
+      const condenseMap = new Map();
+      dataToCondense.forEach(d => {
+        let scoreCount = condenseMap.get(d.score);
+        scoreCount === undefined ? condenseMap.set(d.score, d.count) : condenseMap.set(d.score, scoreCount + d.count);
+      });
+      const condensedData = Array.from(condenseMap, (d) => {return {"count": d[1], "genre": "Various", "score": d[0]}});
+      const combinedCondensedTidyData = condensedTidyData.concat(condensedData);
+
+      filteredTidyData = combinedCondensedTidyData;
+    } else {
+      vis.colorScale.domain(vis.secondaryGenres);
+      filteredTidyData = vis.tidyData.filter(d => vis.secondaryGenres.has(d.genre));
+    }
+
+    filteredTidyData = filteredTidyData.filter(d => {
       if (vis.selectedGenres.size === 0) return true;
       else return vis.selectedGenres.has(d.genre);
     });
 
     vis.series = d3.stack()
+        .order(d3.stackOrderAscending)
         .keys(d3.union(filteredTidyData.map(d => d.genre))) 
         .value(([, group], key) => group.get(key).count)
       (d3.index(filteredTidyData, d => d.score, d => d.genre));
@@ -140,11 +160,18 @@ class StackedHistogram {
         .data(D => D.map(d => (d.key = D.key, d)))
         .join("rect")
           .attr("x", d => vis.xScale(d.data[0]))
-          .attr("y", d => vis.yScale(d[1]))
           .attr("class", "bar")
-          .attr("height", d => vis.yScale(d[0]) - vis.yScale(d[1]))
           .attr("width", vis.xScale.bandwidth())
-          .classed("active", d => d.active)
+          // .classed("active", d => d.active) // Not sure this is necessary anymore
+          // .transition( // This would be nice to have
+          //   d3.transition()
+          //   .duration(250)
+          //   .ease(d3.easeLinear)
+          // ) 
+          .attr("y", d => vis.yScale(d[1]))
+          .attr("height", d => vis.yScale(d[0]) - vis.yScale(d[1]));
+
+    vis.chart.selectAll("rect")
         .on("mousemove", (event, d) => {
           d3.select('#tooltip')
               .style('display', 'block')
@@ -185,6 +212,19 @@ class StackedHistogram {
 
   activateGenre(genre) {
     let vis = this;
+    switch(genre) {
+      case "Various":
+        vis.selectedGenres.clear();
+        vis.isPrimaryMode = false;
+        vis.updateVis();
+        return;
+      case "Return to primary view":
+        vis.selectedGenres.clear();
+        vis.isPrimaryMode = true;
+        vis.updateVis();
+        return;
+    }
+
     if (vis.selectedGenres.has(genre)) {
       vis.selectedGenres.delete(genre);
     } else {
@@ -195,16 +235,6 @@ class StackedHistogram {
 
   segmentClick(data) {
     let vis = this;
-    if (vis.activeSegment !== null &&
-        vis.activeSegment.genre === data.key &&
-        vis.activeSegment.score === data.data[0]) {
-      return;
-    }
-    vis.activeSegment = {
-      genre: data.key,
-      score: data.data[0]
-    };
-    // vis.updateVis();
     vis.dispatcher.call('clickSegment', this, data);
   }
 
