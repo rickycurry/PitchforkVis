@@ -2,6 +2,8 @@ let reviews, labels, genres, genreCounts;
 let stackedHistogram, scatterPlot, lineChart;
 let visualizations;
 
+const NO_GENRE_STRING = "No genre specified";
+
 const dispatcher = d3.dispatch(
     'clickSegment',
     'clickLabel',
@@ -134,7 +136,7 @@ function _updateAlbumLists(listId, filteredReviews) {
 }
 
 function _getAllGenres() {
-  let genres = new Set(["No genre specified"]);
+  let genres = new Set([NO_GENRE_STRING]);
   reviews.forEach(d => {
     d['genres'].forEach(g => {
       genres.add(g);
@@ -145,7 +147,7 @@ function _getAllGenres() {
 
 function _getSortedGenreCounts() {
   const counts = d3.map(genres, g => {
-    if (g === 'No genre specified') return reviews.filter(r => r.genres.length === 0).length;
+    if (g === NO_GENRE_STRING) return reviews.filter(r => r.genres.length === 0).length;
     else return reviews.filter(r => r.genres.includes(g)).length;
   });
   let genreCounts = d3.zip(Array.from(genres), counts)
