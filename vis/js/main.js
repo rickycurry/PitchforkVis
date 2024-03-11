@@ -70,7 +70,10 @@ dispatcher.on('clickSegment', segment => {
 
   // filter the reviews to match the passed in segment
   const filteredReviews = reviews.filter(d => {
-    return d['score'] === score && d['genres'].includes(genre);
+    return d['score'] === score 
+      && (genre === CONDENSED_GENRE_STRING) 
+        ? d['genres'].some((element) => stackedHistogram.secondaryGenres.has(element))
+        : d['genres'].includes(genre)
   });
   _updateAlbumLists(
     'filtered-albums-genre-score',
