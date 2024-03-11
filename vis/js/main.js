@@ -1,4 +1,4 @@
-let reviews, labels, genres;
+let reviews, labels, genres, genreCounts;
 let stackedHistogram, scatterPlot, lineChart;
 let visualizations;
 
@@ -43,10 +43,11 @@ async function loadData() {
 
 async function main() {
   await loadData();
+  genreCounts = _getSortedGenreCounts();
   lineChart = new LineChart({parentElement: '#label-tooltip'});
-  stackedHistogram = new StackedHistogram({parentElement: '#histogram'}, reviews, genres, dispatcher);
+  stackedHistogram = new StackedHistogram({parentElement: '#histogram'}, reviews, genreCounts, dispatcher);
   scatterPlot = new ScatterPlot({parentElement: '#scatter-plot'}, labels, dispatcher, lineChart.config);
-  visualizations = [stackedHistogram, scatterPlot, lineChart]
+  visualizations = [stackedHistogram, scatterPlot, lineChart];
 }
 
 main();
@@ -59,7 +60,7 @@ function getImagePreviewHTML(review) {
 
 dispatcher.on('clickSegment', segment => {
   const genre = segment.key;
-  const score = segment.data.score;
+  const score = segment.data[0];
 
   // change the right-container header
   document.getElementById('album-list-title-genre-score')
@@ -133,14 +134,23 @@ function _updateAlbumLists(listId, filteredReviews) {
 }
 
 function _getAllGenres() {
-  let genres = new Set();
-  genres.add("No genre specified");
+  let genres = new Set(["No genre specified"]);
   reviews.forEach(d => {
     d['genres'].forEach(g => {
       genres.add(g);
-    })
+    });
   });
   return genres;
+}
+
+function _getSortedGenreCounts() {
+  const counts = d3.map(genres, g => {
+    if (g === 'No genre specified') return reviews.filter(r => r.genres.length === 0).length;
+    else return reviews.filter(r => r.genres.includes(g)).length;
+  });
+  let genreCounts = d3.zip(Array.from(genres), counts)
+  genreCounts.sort((a, b) => b[1] - a[1]);
+  return genreCounts;
 }
 
 const checkbox = document.getElementById("darkmode");

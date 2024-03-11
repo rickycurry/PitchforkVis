@@ -4,7 +4,7 @@ class StackedHistogram {
    * Class constructor with basic chart configuration
    * @param _config {Object}
    * @param _data {Array}
-   * @param _genres {Set}
+   * @param _genres {Array[genre, count]}
    * @param _dispatcher {Object}
    */
   constructor(_config, _data, _genres, _dispatcher) {
@@ -24,20 +24,28 @@ class StackedHistogram {
       }
     });
     this.genreProperties = {};
-    const genreKeys = [];
-    _genres.forEach(genre => {
+    this.genreKeys = [];
+    this.defaultPalette = dark6;
+    const genreLimit = this.defaultPalette.length;
+    
+    const genres = _genres.map(d => d[0]);
+    genres.forEach(genre => {
       this.genreProperties[genre] = {
         value: 0,
         enumerable: true,
         writable: true,
       };
-      genreKeys.push(genre);
+      this.genreKeys.push(genre);
     });
-    genreKeys.sort();
-    this.genreKeys = genreKeys;
+
+    this.primaryGenres = new Set(genres.slice(0, genreLimit - 1));
+    this.primaryGenres.add("Various");
+    this.secondaryGenres = new Set(genres.slice(genreLimit - 1));
+
     this.selectedGenres = new Set();
     this.dispatcher = _dispatcher;
     this.activeSegment = null;
+    this.isPrimaryMode = true;
     this.initVis();
   }
 
@@ -55,6 +63,8 @@ class StackedHistogram {
 
     vis.yScale = d3.scaleLinear()
         .rangeRound([vis.height, 0]);
+
+    this.processData();
 
     vis.xAxis = d3.axisBottom(vis.xScale)
         .tickValues([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
@@ -90,8 +100,8 @@ class StackedHistogram {
         .text('count');
 
     vis.colorScale = d3.scaleOrdinal()
-        .domain(vis.genreKeys)
-        .range(dark6);
+        .domain(Array.from(vis.primaryGenres))
+        .range(vis.defaultPalette);
 
     vis.legend = d3.legendColor()
         .scale(vis.colorScale)
@@ -101,62 +111,17 @@ class StackedHistogram {
   }
 
   updateVis() {
-    // process our raw data
     let vis = this;
-    let scores = [];
-    for (let i = 0; i < 101; i++) {
-      const score = i / 10.0;
-      const obj = {score: score};
-      Object.defineProperties(obj, vis.genreProperties);
-      scores.push(obj);
-    }
 
-    const filteredData = vis.data.filter(d => {
-      if (vis.selectedGenres.size === 0) {
-        return true;
-      } else {
-        const genres = d['genres'];
-        for (const genre of genres) {
-          if (vis.selectedGenres.has(genre)) {
-            return true;
-          }
-        }
-        return false;
-      }
-    });
-
-    filteredData.forEach(review => {
-      const scoreIndex = review['score'] * 10;
-      const genres = review['genres'];
-      const noGenresSelected = vis.selectedGenres.size === 0;
-      genres.forEach(genre => {
-        if (noGenresSelected || vis.selectedGenres.has(genre)) {
-          scores[scoreIndex][genre] += 1.0 / genres.length;
-        }
-      });
+    const filteredTidyData = vis.tidyData.filter(d => {
+      if (vis.selectedGenres.size === 0) return true;
+      else return vis.selectedGenres.has(d.genre);
     });
 
     vis.series = d3.stack()
-        // Looks way worse this way, but the order matches the legend (alphabetical)
-        // .order(d3.stackOrderReverse)
-        .keys(this.genreKeys)(scores)
-        .map(d => (d.forEach(v => v.key = d.key), d));
-
-    if (vis.activeSegment !== null) {
-      for (const genre of vis.series) {
-        if (vis.activeSegment.genre === genre.key) {
-          for (const score of genre) {
-            if (vis.activeSegment.score === score.data.score) {
-              score.active = true;
-              break;
-            }
-          }
-          break;
-        }
-      }
-    }
-
-    vis.xScale.domain(scores.map(d => d.score));
+        .keys(d3.union(filteredTidyData.map(d => d.genre))) 
+        .value(([, group], key) => group.get(key).count)
+      (d3.index(filteredTidyData, d => d.score, d => d.genre));
 
     vis.yScale.domain([0, d3.max(vis.series, d => d3.max(d, d => d[1]))]);
 
@@ -167,13 +132,14 @@ class StackedHistogram {
     let vis = this;
 
     vis.chart.selectAll("g")
-        .data(vis.series)
+        .data(vis.series, d => d ? d.key : this.id)
         .join("g")
+          .attr("class", "genre-group")
           .attr("fill", d => vis.colorScale(d.key))
         .selectAll("rect")
-        .data(d => d)
+        .data(D => D.map(d => (d.key = D.key, d)))
         .join("rect")
-          .attr("x", d => vis.xScale(d.data.score))
+          .attr("x", d => vis.xScale(d.data[0]))
           .attr("y", d => vis.yScale(d[1]))
           .attr("class", "bar")
           .attr("height", d => vis.yScale(d[0]) - vis.yScale(d[1]))
@@ -185,15 +151,14 @@ class StackedHistogram {
               .style('left', (event.pageX + vis.config.tooltipPadding) + 'px')
               .style('top', (event.pageY + vis.config.tooltipPadding) + 'px')
               .html(`
-              <div class="tooltip-title">${d.key}, <b>${d.data.score.toFixed(1)}</b></div>
-              <div class="tooltip-body"><b>${d.data[d.key].toFixed(2)}</b> reviews</div>
+              <div class="tooltip-title">${d.key}, <b>${d.data[0].toFixed(1)}</b></div>
+              <div class="tooltip-body"><b>${(d[1] - d[0]).toFixed(2)}</b> reviews</div>
               `);
         })
         .on('mouseleave', () => {
           d3.select('#tooltip').style('display', 'none');
         })
-        .on('click', (event, d) => {
-          vis.dispatcher.call('clickSegment', this, d);
+        .on('click', (_event, d) => {
           vis.segmentClick(d);
         });
 
@@ -232,21 +197,47 @@ class StackedHistogram {
     let vis = this;
     if (vis.activeSegment !== null &&
         vis.activeSegment.genre === data.key &&
-        vis.activeSegment.score === data.data.score) {
-      vis.activeSegment = null;
+        vis.activeSegment.score === data.data[0]) {
+      return;
     }
-    else {
-      vis.activeSegment = {
-        genre: data.key,
-        score: data.data.score
-      };
-    }
-    vis.updateVis();
+    vis.activeSegment = {
+      genre: data.key,
+      score: data.data[0]
+    };
+    // vis.updateVis();
+    vis.dispatcher.call('clickSegment', this, data);
   }
 
   updatePalette(palette) {
     let vis = this;
     vis.colorScale.range(palette);
     vis.renderVis();
+  }
+
+  processData() {
+    let vis = this;
+    let scores = [];
+    for (let i = 0; i < 101; i++) {
+      const score = i / 10.0;
+      const obj = {score: score};
+      Object.defineProperties(obj, vis.genreProperties);
+      scores.push(obj);
+    }
+    vis.xScale.domain(scores.map(d => d.score));
+
+    vis.data.forEach(review => {
+      const scoreIndex = review['score'] * 10;
+      const genres = review['genres'];
+      genres.forEach(genre => {
+        scores[scoreIndex][genre] += 1.0 / genres.length;
+      });
+    });
+
+    vis.tidyData = [];
+    scores.forEach(s => {
+      for (let genre of vis.genreKeys) {
+        vis.tidyData.push({'score': s.score, 'genre': genre, 'count': s[genre]});
+      }
+    });
   }
 }
