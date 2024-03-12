@@ -1,105 +1,72 @@
 text {
     font-family: 'Verdana', sans-serif;
     font-size: 13px;
-    color: #3F3844
 }
 
-/* Text */
-.tooltip-title {
-    font-family: 'Verdana', sans-serif;
-    font-size: 16px;
-    color: #3F3844
-}
-.tooltip-body {
-    font-family: 'Verdana', sans-serif;
-    font-size: 13px;
-    color: #3F3844
-}
-
-p {
+h1, h2, h3, p {
     font-family: 'Verdana', sans-serif;
     font-weight: 400;
-    font-size: 13px;
     margin: 1rem 0 0;
+}
+
+h1, h2, h3 {
+    text-align: center;
 }
 
 h1 {
     font-family: 'Garamond', serif;
     font-weight: 700;
     font-size: 36px;
-    text-align: center;
-    margin: 1rem 0 0;
+}
+
+h2 {
+    font-size: 20px;
 }
 
 h3 {
+    font-size: 14px;
+}
+
+p {
+    font-size: 13px;
+}
+
+/* Text */
+/* .chart-text {
+    color: #FFF
+} */
+
+.tooltip-title {
     font-family: 'Verdana', sans-serif;
-    font-weight: 400;
-    font-size: 20px;
-    text-align: center;
-    margin: 1rem 0 0;
+    font-size: 16px;
+}
+.tooltip-body {
+    font-family: 'Verdana', sans-serif;
+    font-size: 13px;
 }
 
 .axis-title {
     font-size: 15px;
 }
 
-.axis line {
-    stroke: #bbb;
-}
-
 /* Legends */
 .cell {
     cursor: pointer;
 }
-.swatch {
-    stroke: #555;
-}
-.swatch.translucent {
-    fill-opacity: 0.7;
-}
 
 /* Record label scatter plot */
 .label-mark {
-    fill-opacity: 0.7;
-    stroke: #555;
     stroke-width: 1px;
-}
-.label-mark:hover {
-    stroke: black;
-}
-
-/* Histogram */
-.bar:hover {
-    stroke: black;
-}
-.bar.active {
-    stroke: black;
-}
-.selected {
-    stroke: black;
-}
-
-/* Line chart */
-.path {
-    fill: none;
-    stroke: steelblue;
-    stroke-width: 1.5;
-    stroke-linejoin: round;
-    stroke-linecap: round;
 }
 
 /* Tooltips */
 .tooltip {
     position: absolute;
     display: none;
-    background: #fff;
     border-radius: 4px;
-    box-shadow: 2px 2px 3px 0 #7a7a7a;
-    border: 1px solid #ddd;
     font-size: 10px;
     font-weight: 500;
     padding: 10px;
-    color: #000;
 }
 #tooltip {
     max-width: 170px;
@@ -117,15 +84,11 @@ h3 {
     margin-bottom: 2rem;
 }
 
-.container-left {
-    margin-right: 1rem;
-}
-
 .container-right {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 250px;
+    width: 280px;
     font-family: 'Verdana', sans-serif;
 }
 

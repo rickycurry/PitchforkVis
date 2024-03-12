@@ -1,10 +1,13 @@
+const CONDENSED_GENRE_STRING = "Various"
+const RETURN_PRIMARY_STRING = "Return to primary view"
+
 class StackedHistogram {
 
   /**
    * Class constructor with basic chart configuration
    * @param _config {Object}
    * @param _data {Array}
-   * @param _genres {Set}
+   * @param _genres {Array[genre, count]}
    * @param _dispatcher {Object}
    */
   constructor(_config, _data, _genres, _dispatcher) {
@@ -13,31 +16,40 @@ class StackedHistogram {
       parentElement: _config.parentElement,
       containerWidth: _config.containerWidth || 1100,
       containerHeight: _config.containerHeight || 680,
-      margin: _config.margin || {top: 10, right: 10, bottom: 35, left: 60},
+      margin: _config.margin || {top: 10, right: 15, bottom: 35, left: 60},
       legendTransform: _config.legendTransform || {down: 15, right: 20},
       tooltipPadding: _config.tooltipPadding || 10,
     }
     this.data = _data;
     this.data.forEach(review => {
       if (review['genres'].length === 0) {
-        review['genres'].push('No genre specified');
+        review['genres'].push(NO_GENRE_STRING);
       }
     });
     this.genreProperties = {};
-    const genreKeys = [];
-    _genres.forEach(genre => {
+    this.genreKeys = [];
+    this.defaultPalette = dark6;
+    const genreLimit = this.defaultPalette.length;
+    
+    const genres = _genres.map(d => d[0]);
+    genres.forEach(genre => {
       this.genreProperties[genre] = {
         value: 0,
         enumerable: true,
         writable: true,
       };
-      genreKeys.push(genre);
+      this.genreKeys.push(genre);
     });
-    genreKeys.sort();
-    this.genreKeys = genreKeys;
+
+    // We condense down to (genreLimit) genres to respect color perceptual principles
+    this.primaryGenres = new Set(genres.slice(0, genreLimit - 1));
+    this.primaryGenres.add(CONDENSED_GENRE_STRING);
+    this.secondaryGenres = new Set(genres.slice(genreLimit - 1));
+    this.secondaryGenres.add(RETURN_PRIMARY_STRING);
+
     this.selectedGenres = new Set();
     this.dispatcher = _dispatcher;
-    this.activeSegment = null;
+    this.isPrimaryMode = true;
     this.initVis();
   }
 
@@ -55,6 +67,8 @@ class StackedHistogram {
 
     vis.yScale = d3.scaleLinear()
         .rangeRound([vis.height, 0]);
+
+    this.processData();
 
     vis.xAxis = d3.axisBottom(vis.xScale)
         .tickValues([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
@@ -85,13 +99,12 @@ class StackedHistogram {
 
     vis.chart.append('text')
         .attr('class', 'axis-title')
-        .attr('transform', `translate(-45,15)`)
+        .attr('transform', `translate(-45,0)`)
         .style('text-anchor', 'start')
         .text('count');
 
     vis.colorScale = d3.scaleOrdinal()
-        .domain(vis.genreKeys)
-        .range(d3.schemeCategory10);
+        .range(vis.defaultPalette);
 
     vis.legend = d3.legendColor()
         .scale(vis.colorScale)
@@ -101,60 +114,15 @@ class StackedHistogram {
   }
 
   updateVis() {
-    // process our raw data
     let vis = this;
-    let scores = [];
-    for (let i = 0; i < 101; i++) {
-      const score = i / 10.0;
-      const obj = {score: score, None: 0.0};
-      Object.defineProperties(obj, vis.genreProperties);
-      scores.push(obj);
-    }
 
-    const filteredData = vis.data.filter(d => {
-      if (vis.selectedGenres.size === 0) {
-        return true;
-      } else {
-        const genres = d['genres'];
-        for (const genre of genres) {
-          if (vis.selectedGenres.has(genre)) {
-            return true;
-          }
-        }
-        return false;
-      }
-    });
-
-    filteredData.forEach(review => {
-      const scoreIndex = review['score'] * 10;
-      const genres = review['genres'];
-      const noGenresSelected = vis.selectedGenres.size === 0;
-      genres.forEach(genre => {
-        if (noGenresSelected || vis.selectedGenres.has(genre)) {
-          scores[scoreIndex][genre] += 1.0 / genres.length;
-        }
-      });
-    });
+    const filteredTidyData = vis.filterBySelectionAndMode();
 
     vis.series = d3.stack()
-        .keys(this.genreKeys)(scores)
-        .map(d => (d.forEach(v => v.key = d.key), d));
-
-    if (vis.activeSegment !== null) {
-      for (const genre of vis.series) {
-        if (vis.activeSegment.genre === genre.key) {
-          for (const score of genre) {
-            if (vis.activeSegment.score === score.data.score) {
-              score.active = true;
-              break;
-            }
-          }
-          break;
-        }
-      }
-    }
-
-    vis.xScale.domain(scores.map(d => d.score));
+        .order(d3.stackOrderAscending)
+        .keys(d3.union(filteredTidyData.map(d => d.genre))) 
+        .value(([, group], key) => group.get(key).count)
+      (d3.index(filteredTidyData, d => d.score, d => d.genre));
 
     vis.yScale.domain([0, d3.max(vis.series, d => d3.max(d, d => d[1]))]);
 
@@ -165,35 +133,32 @@ class StackedHistogram {
     let vis = this;
 
     vis.chart.selectAll("g")
-        .data(vis.series)
+        .data(vis.series, d => d ? d.key : this.id)
         .join("g")
+          .attr("class", "genre-group")
           .attr("fill", d => vis.colorScale(d.key))
         .selectAll("rect")
-        .data(d => d)
+        .data(D => D.map(d => (d.key = D.key, d)))
         .join("rect")
-          .attr("x", d => vis.xScale(d.data.score))
-          .attr("y", d => vis.yScale(d[1]))
+          .attr("x", d => vis.xScale(d.data[0]))
           .attr("class", "bar")
-          .attr("height", d => vis.yScale(d[0]) - vis.yScale(d[1]))
           .attr("width", vis.xScale.bandwidth())
-          .classed("active", d => d.active)
+          .attr("y", d => vis.yScale(d[1]))
+          .attr("height", d => vis.yScale(d[0]) - vis.yScale(d[1]));
+
+    vis.chart.selectAll("rect")
         .on("mousemove", (event, d) => {
           d3.select('#tooltip')
               .style('display', 'block')
               .style('left', (event.pageX + vis.config.tooltipPadding) + 'px')
               .style('top', (event.pageY + vis.config.tooltipPadding) + 'px')
               .html(`
-              <div class="tooltip-title">${d.key}, <b>${d.data.score.toFixed(1)}</b></div>
-              <div class="tooltip-body"><b>${d.data[d.key].toFixed(2)}</b> reviews</div>
+              <div class="tooltip-title">${d.key}, <b>${d.data[0].toFixed(1)}</b></div>
+              <div class="tooltip-body"><b>${(d[1] - d[0]).toFixed(2)}</b> reviews</div>
               `);
         })
-        .on('mouseleave', () => {
-          d3.select('#tooltip').style('display', 'none');
-        })
-        .on('click', (event, d) => {
-          vis.dispatcher.call('clickSegment', this, d);
-          vis.segmentClick(d);
-        });
+        .on('mouseleave', () => { d3.select('#tooltip').style('display', 'none'); })
+        .on('click', (_event, d) => { vis.dispatcher.call('clickSegment', this, d); });
 
     // Append empty x-axis group and move it to the bottom of the chart
     vis.xAxisG = vis.chart.append('g')
@@ -211,13 +176,18 @@ class StackedHistogram {
         .call(vis.legend);
 
     vis.chart.selectAll('.cell')
-        .on("click", (event, d) => {
-          vis.activateGenre(d);
-        });
+        .on("click", (_event, d) => { vis.activateGenre(d); });
   }
 
   activateGenre(genre) {
     let vis = this;
+    switch(genre) {
+      case CONDENSED_GENRE_STRING:
+        return vis.setPrimaryMode(false);
+      case RETURN_PRIMARY_STRING:
+        return vis.setPrimaryMode(true);
+    }
+
     if (vis.selectedGenres.has(genre)) {
       vis.selectedGenres.delete(genre);
     } else {
@@ -226,19 +196,76 @@ class StackedHistogram {
     vis.updateVis();
   }
 
-  segmentClick(data) {
+  setPrimaryMode(isPrimary) {
     let vis = this;
-    if (vis.activeSegment !== null &&
-        vis.activeSegment.genre === data.key &&
-        vis.activeSegment.score === data.data.score) {
-      vis.activeSegment = null;
-    }
-    else {
-      vis.activeSegment = {
-        genre: data.key,
-        score: data.data.score
-      };
-    }
+    vis.selectedGenres.clear();
+    vis.isPrimaryMode = isPrimary;
+    vis.colorScale.domain(isPrimary ? vis.primaryGenres : vis.secondaryGenres);
     vis.updateVis();
+  }
+
+  updatePalette(palette) {
+    let vis = this;
+    vis.colorScale.range(palette);
+    vis.renderVis();
+  }
+
+  filterBySelectionAndMode() {
+    let vis = this;
+    let data = vis.isPrimaryMode ? vis.primaryTidyData : vis.secondaryTidyData;
+
+    if (vis.selectedGenres.size > 0) {
+      data = data.filter(d => vis.selectedGenres.has(d.genre));
+    }
+
+    return data;
+  }
+
+  // One-time data processing task. Transform our input data and cache those
+  // aggregates for later.
+  processData() {
+    let vis = this;
+    let scores = [];
+
+    // Create an array of scores [0.0, 0.1, .. , 10.0]
+    // Each entry is an object: {score: s, genre1: x, genre2: y, .. , genreN: n}
+    for (let i = 0; i < 101; i++) {
+      const score = i / 10.0;
+      const obj = {score: score};
+      Object.defineProperties(obj, vis.genreProperties);
+      scores.push(obj);
+    }
+    vis.xScale.domain(scores.map(d => d.score));
+
+    // Count the number of reviews of each score & genre combination
+    vis.data.forEach(review => {
+      const scoreIndex = review['score'] * 10;
+      const genres = review['genres'];
+      genres.forEach(genre => {
+        scores[scoreIndex][genre] += 1.0 / genres.length;
+      });
+    });
+
+    // Convert the data into a "tidy table" (i.e. one array element per score & genre combo)
+    vis.tidyData = [];
+    scores.forEach(s => {
+      for (let genre of vis.genreKeys) {
+        vis.tidyData.push({'score': s.score, 'genre': genre, 'count': s[genre]});
+      }
+    });
+
+    // Since we switch between primary and secondary genres, cache those subarrays.
+    const primaryOnlyTidyData = vis.tidyData.filter(d => vis.primaryGenres.has(d.genre));
+    vis.secondaryTidyData = vis.tidyData.filter(d => vis.secondaryGenres.has(d.genre));
+
+    // Condense all non-primary genre entries into one "Various" genre
+    const secondaryCondensedMap = new Map();
+    vis.secondaryTidyData.forEach(d => {
+      let scoreCount = secondaryCondensedMap.get(d.score);
+      scoreCount === undefined ? secondaryCondensedMap.set(d.score, d.count) : secondaryCondensedMap.set(d.score, scoreCount + d.count);
+    });
+    const secondaryCondensedTidyData = Array.from(secondaryCondensedMap, (d) => {return {"count": d[1], "genre": CONDENSED_GENRE_STRING, "score": d[0]}});
+    // Primary tidy data gets the condensed genre too, so the primary view displays all extant data
+    vis.primaryTidyData = primaryOnlyTidyData.concat(secondaryCondensedTidyData);
   }
 }

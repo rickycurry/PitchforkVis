@@ -1,5 +1,8 @@
-let reviews, labels, genres;
+let reviews, labels, genres, genreCounts;
 let stackedHistogram, scatterPlot, lineChart;
+let visualizations;
+
+const NO_GENRE_STRING = "No genre specified";
 
 const dispatcher = d3.dispatch(
     'clickSegment',
@@ -42,9 +45,11 @@ async function loadData() {
 
 async function main() {
   await loadData();
+  genreCounts = _getSortedGenreCounts();
   lineChart = new LineChart({parentElement: '#label-tooltip'});
-  stackedHistogram = new StackedHistogram({parentElement: '#histogram'}, reviews, genres, dispatcher);
+  stackedHistogram = new StackedHistogram({parentElement: '#histogram'}, reviews, genreCounts, dispatcher);
   scatterPlot = new ScatterPlot({parentElement: '#scatter-plot'}, labels, dispatcher, lineChart.config);
+  visualizations = [stackedHistogram, scatterPlot, lineChart];
 }
 
 main();
@@ -57,15 +62,18 @@ function getImagePreviewHTML(review) {
 
 dispatcher.on('clickSegment', segment => {
   const genre = segment.key;
-  const score = segment.data.score;
+  const score = segment.data[0];
 
   // change the right-container header
   document.getElementById('album-list-title-genre-score')
       .innerText = genre + ", " + score.toFixed(1);
 
   // filter the reviews to match the passed in segment
-  const filteredReviews = reviews.filter(d => {
-    return d['score'] === score && d['genres'].includes(genre);
+  const filteredReviews = reviews.filter(r => {
+    return r['score'] === score 
+      && ((genre === CONDENSED_GENRE_STRING) 
+        ? r['genres'].some((element) => stackedHistogram.secondaryGenres.has(element))
+        : r['genres'].includes(genre));
   });
   _updateAlbumLists(
     'filtered-albums-genre-score',
@@ -131,12 +139,33 @@ function _updateAlbumLists(listId, filteredReviews) {
 }
 
 function _getAllGenres() {
-  let genres = new Set();
-  genres.add("No genre specified");
+  let genres = new Set([NO_GENRE_STRING]);
   reviews.forEach(d => {
     d['genres'].forEach(g => {
       genres.add(g);
-    })
+    });
   });
   return genres;
 }
+
+function _getSortedGenreCounts() {
+  const counts = d3.map(genres, g => {
+    if (g === NO_GENRE_STRING) return reviews.filter(r => r.genres.length === 0).length;
+    else return reviews.filter(r => r.genres.includes(g)).length;
+  });
+  let genreCounts = d3.zip(Array.from(genres), counts)
+  genreCounts.sort((a, b) => b[1] - a[1]);
+  return genreCounts;
+}
+
+const checkbox = document.getElementById("darkmode");
+checkbox.addEventListener('change', (event) => {
+  const styleLink = document.getElementById("style-link");
+  if (event.currentTarget.checked) {
+    styleLink.setAttribute("href", "css/style_dark.css");
+    visualizations.forEach(v => v.updatePalette(dark6));
+  } else {
+    styleLink.setAttribute("href", "css/style_light.css");
+    visualizations.forEach(v => v.updatePalette(light6));
+  }
+});

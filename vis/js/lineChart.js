@@ -91,21 +91,6 @@ class LineChart {
   renderVis() {
     let vis = this;
 
-    vis.chart.selectAll("path")
-        .remove();
-
-    vis.chart.append("path")
-        .datum(vis.data)
-        .attr("fill", "none")
-        .attr("stroke", "#bbb")
-        .attr("stroke-width", 1.5)
-        .attr("stroke-linejoin", "round")
-        .attr("stroke-linecap", "round")
-        .attr("d", d3.line()
-            .defined(d => !isNaN(d.score))
-            .x(d => vis.xScale(d.publish_date))
-            .y(d => vis.yScale(d.score)));
-
     vis.chart.selectAll('.point')
         .data(vis.data, d => d.label)
         .join('circle')
@@ -127,4 +112,6 @@ class LineChart {
         // });
     vis.yAxisG.call(vis.yAxis);
   }
+
+  updatePalette(_palette) { return; }
 }

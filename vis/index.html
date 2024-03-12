@@ -4,22 +4,31 @@
     <title>PitchforkVis</title>
     <meta charset="UTF-8">
     <link rel="icon" href="data:;base64,iVBORwOKGO=" />
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css"/>
+    <link rel="stylesheet" href="css/style_dark.css" id="style-link"/>
+    <!-- <link rel="stylesheet" href="css/style_light.css" id="style-link"/> -->
+
+
 </head>
 <body>
     <h1>PitchforkVis</h1>
-    <h3>Visualizing 2+ decades of music criticism</h3>
+    <h2>Visualizing 2+ decades of music criticism</h2>
+    <h3>
+        <label for="darkmode">Dark mode</label>
+        <input type="checkbox" id="darkmode" checked="true">
+    </h3>
     <!-- Add HTML content, SVG drawing area, ... -->
     <!-- Histogram -->
     <p>
         The following histogram represents all Pitchfork reviews published between 1999 and <span id="end-date"></span>. 
         The histogram's bin width matches Pitchfork's review granularity of 0.1 points. 
         Each genre is represented by a different color. 
-        (Sorry if you have trouble discerning between genres — I will address color accessibility when I can!)
     </p>
     <p>
         Clicking on genres on the legend will add or remove them from the current "genre selection", and as long as at least one genre is selected, only selected genres will appear on the chart. 
         This makes it easier to read the distribution of less populated genres, and to compare distributions among a smaller number of genres.
+        Clicking the "Various" genre in the legend will expand into a 'secondary' view consisting of all the least-populous genres.
+        You can return to the 'primary' view by pressing the corresponding legend entry ("Return to primary view").
     </p>
     <p>
         Hovering your mouse over a histogram segment will cause a tooltip to appear which describes the segment (genre, score, and <i>review count</i>*). 
@@ -31,14 +40,14 @@
         I divided the count evenly between each genre listed to avoid double-counting, but this leads to the rather unintuitive consequence of having decimal-valued counts in the tooltip.
     </p>
 
-    <h3> Score distribution </h3>
+    <h2> Score distribution </h2>
 
     <div class="container">
         <div class="container-left">
             <div class="chart"><svg id="histogram"></svg></div>
         </div>
         <div class="container-right">
-            <h3 id="album-list-title-genre-score">Click a segment to see its reviews</h3>
+            <h2 id="album-list-title-genre-score">Click a histogram segment to see its reviews</h2>
             <div class="album-list">
                 <ul id="filtered-albums-genre-score"></ul>
             </div>
@@ -59,7 +68,6 @@
         The size of each mark corresponds to the number of records reviewed per label, and the color indicates genre tendency. 
         A label was determined to have a genre tendency if at least half of its albums were a particular genre.
         Naturally, many labels did not meet this criteria, so I also assigned a color to "mixed".
-        (As with the previous chart, I need to clarify the color palette here, since the blues are quite dominant and difficult to discern.)
     </p>
     <p>
         Again, the genre legend serves as an interactive visibility filter.
@@ -69,19 +77,23 @@
         Hovering over a mark reveals the label's name, along with a sub-plot which organizes the corresponding label's albums by release date and review score.
     </p>
 
-    <h3> Record label quality and consistency</h3>
+    <h2> Record label quality and consistency</h2>
 
     <div class="container">
         <div class="container-left">
             <div class="chart"><svg id="scatter-plot"></svg></div>
         </div>
         <div class="container-right">
-            <h3 id="album-list-title-label">Click a label to see its reviews</h3>
+            <h2 id="album-list-title-label">Click a label to see its reviews</h2>
             <div class="album-list">
                 <ul id="filtered-albums-label"></ul>
             </div>
         </div>
     </div>
+
+    <!-- Timeline stacked area chart -->
+
+    <!-- Tooltips -->
     <div id="tooltip" class="tooltip"></div>
     <div id="album-tooltip" class="tooltip"></div>
     <div id="label-tooltip-div">
@@ -101,6 +113,9 @@
         There is also low-hanging fruit to be picked when it comes to chronological visualizations. 
         I predict that it would be interesting to chart the (Pitchfork-centric) prevalence of various genres over time, and likewise with individual artists over their career lifetimes.
     </p>
+    <p>
+        Special thanks to <a href="https://tsitsul.in/blog/coloropt/" target="_blank">Anton Tsitsulin</a> for their insight into optimal color palettes.
+    </p>
 
     <!-- D3 bundle -->
     <script src="js/d3.v6.min.js"></script>
@@ -110,6 +125,7 @@
     <script src="js/scatterplot.js"></script>
     <script src="js/histogram.js"></script>
     <script src="js/lineChart.js"></script>
+    <script src="js/palettes.js"></script>
     <script src="js/main.js"></script>
 
 </body>
