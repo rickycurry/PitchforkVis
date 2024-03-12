@@ -1,3 +1,6 @@
+// const CONDENSED_GENRE_STRING = "Various (click to expand)"
+// const RETURN_PRIMARY_STRING = "Return to primary view"
+
 class ScatterPlot {
 
   /**
@@ -22,10 +25,15 @@ class ScatterPlot {
     _data = _data.filter(d => d.count >= this.config.countCutoff);
     _data.sort((d1, d2) => d2.count - d1.count);
     this.data = _data;
-    this.genres = _data.map(d => d['majority_genre']).sort();
+    this.genres = _data.map(d => d.majority_genre).sort();
     this.dispatcher = _dispatcher;
     this.tooltipConfig = _tooltipConfig;
     this.selectedGenres = new Set();
+    this.defaultPalette = dark6;
+    this.isPrimaryMode = true;
+
+    this.processData();
+
     this.initVis();
   }
 
@@ -86,7 +94,7 @@ class ScatterPlot {
         .text('standard deviation');
 
     vis.colorScale = d3.scaleOrdinal()
-        .domain(vis.genres)
+        // .domain(vis.genres)
         .range(dark6);
 
     vis.legend = d3.legendColor()
@@ -114,14 +122,8 @@ class ScatterPlot {
   updateVis() {
     let vis = this;
 
-    vis.filteredData = vis.data.filter(d => {
-      if (vis.selectedGenres.size === 0) {
-        return true;
-      } else {
-        const genre = d['majority_genre'];
-        return vis.selectedGenres.has(genre);
-      }
-    });
+    const data = vis.isPrimaryMode ? vis.primaryData : vis.secondaryData;
+    vis.filteredData = data.filter(d => vis.selectedGenres.size === 0 || vis.selectedGenres.has(d.majority_genre));
 
     vis.renderVis();
   }
@@ -133,11 +135,11 @@ class ScatterPlot {
     const circles = vis.chart.selectAll('.label-mark')
         .data(vis.filteredData, d => d.label)
         .join('circle')
-        .attr('class', 'label-mark')
-        .attr('r', d => vis.radiusScale(d.count))
-        .attr('cy', d => vis.yScale(d['std_dev']))
-        .attr('cx', d => vis.xScale(d.mean))
-        .attr('fill', d => vis.colorScale(d['majority_genre']));
+          .attr('class', 'label-mark')
+          .attr('r', d => vis.radiusScale(d.count))
+          .attr('cy', d => vis.yScale(d.std_dev))
+          .attr('cx', d => vis.xScale(d.mean))
+          .attr('fill', d => vis.colorScale(d.majority_genre));
 
     circles.on("mouseenter", (event, d) => {
         d3.select('#label-tooltip').style('display', 'block');
@@ -149,11 +151,12 @@ class ScatterPlot {
       .on('mouseleave', () => {
         d3.select('#label-tooltip').style('display', 'none');
       })
-      .on('click', (event, d) => {
+      .on('click', (_event, d) => {
         vis.dispatcher.call('clickLabel', this, d);
       });
 
     vis.legendG = vis.chart.append('g')
+      .attr("class", "legend")
       .attr("transform", `translate(${vis.config.legendTransform.right},${vis.config.legendTransform.down})`)
       .call(vis.legend);
 
@@ -165,11 +168,30 @@ class ScatterPlot {
 
   activateGenre(genre) {
     let vis = this;
+
+    switch(genre) {
+      case "Various (click here to expand)":
+        return vis.setPrimaryMode(false);
+      case RETURN_PRIMARY_STRING:
+        return vis.setPrimaryMode(true);
+    }
+
     if (vis.selectedGenres.has(genre)) {
       vis.selectedGenres.delete(genre);
     } else {
       vis.selectedGenres.add(genre);
     }
+    vis.updateVis();
+  }
+
+  setPrimaryMode(isPrimary) {
+    let vis = this;
+    vis.selectedGenres.clear();
+    vis.isPrimaryMode = isPrimary;
+    vis.colorScale.domain(isPrimary ? vis.primaryGenres : vis.secondaryGenres);
+    vis.chart.select(".legend").remove();
+    // vis.legendG.remove();
+
     vis.updateVis();
   }
 
@@ -197,5 +219,34 @@ class ScatterPlot {
     let vis = this;
     vis.colorScale.range(palette);
     vis.renderVis();
+  }
+
+  processData() {
+    let vis = this;
+
+    genreCounts = new Map();
+    vis.data.forEach(d => {
+      const count = genreCounts.get(d.majority_genre);
+      if (count === undefined) genreCounts.set(d.majority_genre, 1); 
+      else genreCounts.set(d.majority_genre, count + 1);
+    });
+    vis.sortedGenres = Array.from(genreCounts)
+      .sort((a, b) => b[1] - a[1])
+      .map(d => d[0]);
+
+    // We condense down to (genreLimit) genres to respect color perceptual principles
+    const genreLimit = vis.defaultPalette.length;
+    vis.primaryGenres = new Set(vis.sortedGenres.slice(0, genreLimit - 1));
+    vis.primaryGenres.add("Various (click here to expand)");
+    vis.secondaryGenres = new Set(vis.sortedGenres.slice(genreLimit - 1));
+    vis.secondaryGenres.add(RETURN_PRIMARY_STRING);
+
+    vis.secondaryData = vis.data.filter(d => vis.secondaryGenres.has(d.majority_genre))
+      .sort((a, b) => b.count - a.count);
+    const primaryData = vis.data.filter(d => vis.primaryGenres.has(d.majority_genre));
+    vis.primaryData = primaryData.concat(vis.secondaryData.map(d => {
+      return { ...d, majority_genre: "Various (click here to expand)" }
+    }))
+      .sort((a, b) => b.count - a.count);
   }
 }

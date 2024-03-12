@@ -116,7 +116,7 @@ class StackedHistogram {
   updateVis() {
     let vis = this;
 
-    let filteredTidyData = vis.filterBySelectionAndMode();
+    const filteredTidyData = vis.filterBySelectionAndMode();
 
     vis.series = d3.stack()
         .order(d3.stackOrderAscending)
