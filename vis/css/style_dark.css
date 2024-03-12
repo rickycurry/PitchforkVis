@@ -41,11 +41,15 @@ h1, h2, h3, p {
 }
 
 /* Record label scatter plot */
-.label-mark {
-    stroke: #AAA;
-}
 .label-mark:hover {
     stroke: #FFF;
+}
+.label-mark {
+    stroke: #BBB;
+    fill-opacity: 1;
+}
+.swatch.translucent {
+    fill-opacity: 0.95;
 }
 
 /* Histogram */

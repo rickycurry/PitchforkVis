@@ -53,13 +53,9 @@ p {
 .cell {
     cursor: pointer;
 }
-.swatch.translucent {
-    fill-opacity: 0.9;
-}
 
 /* Record label scatter plot */
 .label-mark {
-    fill-opacity: 0.9;
     stroke-width: 1px;
 }
 

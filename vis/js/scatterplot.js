@@ -1,6 +1,3 @@
-// const CONDENSED_GENRE_STRING = "Various (click to expand)"
-// const RETURN_PRIMARY_STRING = "Return to primary view"
-
 class ScatterPlot {
 
   /**
@@ -94,7 +91,7 @@ class ScatterPlot {
         .text('standard deviation');
 
     vis.colorScale = d3.scaleOrdinal()
-        // .domain(vis.genres)
+        .domain(vis.primaryGenres)
         .range(dark6);
 
     vis.legend = d3.legendColor()
@@ -110,11 +107,8 @@ class ScatterPlot {
         .attr('transform', `translate(0,${vis.height})`)
         .call(vis.xAxis);
 
-    d3.selectAll('.label')
-          .classed('chart-text', true);
-
-    vis.chart.selectAll('.swatch')
-        .classed("translucent", true);
+    // d3.selectAll('.label')
+    //     .classed('chart-text', true);
 
     vis.updateVis();
   }
@@ -143,27 +137,24 @@ class ScatterPlot {
 
     circles.on("mouseenter", (event, d) => {
         d3.select('#label-tooltip').style('display', 'block');
-        vis.onMouseEnterOrMove(event, d, true);
+        vis.onMouseEnterOrMove(event, d, true); 
       })
-      .on("mousemove", event => {
-        vis.onMouseEnterOrMove(event, null, false);
-      })
-      .on('mouseleave', () => {
-        d3.select('#label-tooltip').style('display', 'none');
-      })
-      .on('click', (_event, d) => {
-        vis.dispatcher.call('clickLabel', this, d);
-      });
+      .on("mousemove", event => { vis.onMouseEnterOrMove(event, null, false); })
+      .on('mouseleave', () => { d3.select('#label-tooltip').style('display', 'none'); })
+      .on('click', (_event, d) => { vis.dispatcher.call('clickLabel', this, d); });
 
+    // Legend changes frequently -- ensure we only have one.
+    vis.chart.select(".legend").remove();
     vis.legendG = vis.chart.append('g')
       .attr("class", "legend")
       .attr("transform", `translate(${vis.config.legendTransform.right},${vis.config.legendTransform.down})`)
       .call(vis.legend);
 
+    vis.chart.selectAll('.swatch')
+        .classed("translucent", true);
+
     vis.chart.selectAll('.cell')
-        .on("click", (_event, d) => {
-          vis.activateGenre(d);
-        });
+        .on("click", (_event, d) => { vis.activateGenre(d); });
   }
 
   activateGenre(genre) {
@@ -189,9 +180,6 @@ class ScatterPlot {
     vis.selectedGenres.clear();
     vis.isPrimaryMode = isPrimary;
     vis.colorScale.domain(isPrimary ? vis.primaryGenres : vis.secondaryGenres);
-    vis.chart.select(".legend").remove();
-    // vis.legendG.remove();
-
     vis.updateVis();
   }
 
@@ -234,7 +222,6 @@ class ScatterPlot {
       .sort((a, b) => b[1] - a[1])
       .map(d => d[0]);
 
-    // We condense down to (genreLimit) genres to respect color perceptual principles
     const genreLimit = vis.defaultPalette.length;
     vis.primaryGenres = new Set(vis.sortedGenres.slice(0, genreLimit - 1));
     vis.primaryGenres.add("Various (click here to expand)");

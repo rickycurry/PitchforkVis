@@ -143,12 +143,6 @@ class StackedHistogram {
           .attr("x", d => vis.xScale(d.data[0]))
           .attr("class", "bar")
           .attr("width", vis.xScale.bandwidth())
-          // .classed("active", d => d.active) // Not sure this is necessary anymore
-          // .transition( // This would be nice to have
-          //   d3.transition()
-          //   .duration(250)
-          //   .ease(d3.easeLinear)
-          // ) 
           .attr("y", d => vis.yScale(d[1]))
           .attr("height", d => vis.yScale(d[0]) - vis.yScale(d[1]));
 
@@ -163,12 +157,8 @@ class StackedHistogram {
               <div class="tooltip-body"><b>${(d[1] - d[0]).toFixed(2)}</b> reviews</div>
               `);
         })
-        .on('mouseleave', () => {
-          d3.select('#tooltip').style('display', 'none');
-        })
-        .on('click', (_event, d) => {
-          vis.segmentClick(d);
-        });
+        .on('mouseleave', () => { d3.select('#tooltip').style('display', 'none'); })
+        .on('click', (_event, d) => { vis.dispatcher.call('clickSegment', this, d); });
 
     // Append empty x-axis group and move it to the bottom of the chart
     vis.xAxisG = vis.chart.append('g')
@@ -186,9 +176,7 @@ class StackedHistogram {
         .call(vis.legend);
 
     vis.chart.selectAll('.cell')
-        .on("click", (_event, d) => {
-          vis.activateGenre(d);
-        });
+        .on("click", (_event, d) => { vis.activateGenre(d); });
   }
 
   activateGenre(genre) {
@@ -214,10 +202,6 @@ class StackedHistogram {
     vis.isPrimaryMode = isPrimary;
     vis.colorScale.domain(isPrimary ? vis.primaryGenres : vis.secondaryGenres);
     vis.updateVis();
-  }
-
-  segmentClick(data) {
-    this.dispatcher.call('clickSegment', this, data);
   }
 
   updatePalette(palette) {
