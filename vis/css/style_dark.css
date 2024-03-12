@@ -7,6 +7,13 @@ text {
     fill: #FFF;
 }
 
+a:link {
+    color: #FFF;
+}
+a:visited {
+    color: #FFF;
+}
+
 h1, h2, h3, p {
     color: #FFF;
 }
